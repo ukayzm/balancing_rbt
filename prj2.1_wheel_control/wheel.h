@@ -14,11 +14,12 @@ extern void init_encoders(void);
 #define MM_PER_INTR  0.4 /* mm */
 #define MS_0_255     50  /* ms (0 mm/s -> max speed 320 mm/s) */
 #define MAX_MMPS     320.0 /* mm per second */
+#define MIN_PWM		 70  /* the minimum PWM value to spin wheel */
 
 #define NUM_INTR_SAVE	2
 
-#define KP			1.6
-#define KI			1.5
+#define KP			1.8
+#define KI			1.2
 #define KD			0.0
 
 #define NUM_CDATA	(26*2+1)
@@ -40,9 +41,16 @@ public:
 	void SetPwm(int16_t pwm);			/* PWM -255 ~ +255 */
 	void Loop(void);
 	void Print(void);
+	void PrintPid(void);
 	void Calibrate(void);
 	void Calibrate2(void);
 	uint8_t bDiag;
+	void IncKp(void);
+	void IncKi(void);
+	void IncKd(void);
+	void DecKp(void);
+	void DecKi(void);
+	void DecKd(void);
 private:
 	unsigned long ulLastLoopUs;
 	int16_t *pCounter;

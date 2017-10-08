@@ -50,8 +50,8 @@ CalibData calib_data_m3[NUM_CDATA] = {
 	{ -90, -131.76 },
 	{ -80, -102.36 },
 	{ -70, -69.18 },
-	{ -60, -32.59 },
-	{ -50, -1.20 },
+	{ -60, -0.00 },
+	{ -50, -0.00 },
 	{ -40, -0.00 },
 	{ -30, -0.00 },
 	{ -20, -0.00 },
@@ -61,8 +61,8 @@ CalibData calib_data_m3[NUM_CDATA] = {
 	{ 20, 0.00 },
 	{ 30, 0.00 },
 	{ 40, 0.00 },
-	{ 50, 1.20 },
-	{ 60, 17.19 },
+	{ 50, 0.00 },
+	{ 60, 0.00 },
 	{ 70, 35.79 },
 	{ 80, 89.17 },
 	{ 90, 130.36 },
@@ -106,8 +106,8 @@ CalibData calib_data_m4[NUM_CDATA] = {
 	{ -90, -118.96 },
 	{ -80, -84.77 },
 	{ -70, -31.99 },
-	{ -60, -15.60 },
-	{ -50, -0.80 },
+	{ -60, -0.00 },
+	{ -50, -0.00 },
 	{ -40, -0.00 },
 	{ -30, -0.00 },
 	{ -20, -0.00 },
@@ -117,8 +117,8 @@ CalibData calib_data_m4[NUM_CDATA] = {
 	{ 20, 0.00 },
 	{ 30, 0.00 },
 	{ 40, 0.00 },
-	{ 50, 1.40 },
-	{ 60, 18.99 },
+	{ 50, 0.00 },
+	{ 60, 0.0 },
 	{ 70, 36.19 },
 	{ 80, 51.78 },
 	{ 90, 64.98 },
@@ -199,8 +199,15 @@ void Wheel::SetSpeed(int16_t speed)
 			}
 		}
 	}
-	if (speed != 0 && nPwmBias == 0) {
-		nPwmBias = fTgtSpeed * 255.0 / MAX_MMPS;
+	//if (nPwmBias == 0)
+	{
+		if (speed > 0) {
+			nPwmBias = fTgtSpeed * (255.0 - MIN_PWM) / MAX_MMPS + MIN_PWM;
+		} else if (speed < 0) {
+			nPwmBias = fTgtSpeed * (255.0 - MIN_PWM) / MAX_MMPS - MIN_PWM;
+		} else {
+			nPwmBias = 0;
+		}
 	}
 	pPid->SetMode(AUTOMATIC);
 }
@@ -253,9 +260,13 @@ void Wheel::Loop(void)
 
 	/* diagnostic print */
 	if (bDiag) {
+#if 1
 		if (ulTotalCounter != cur_TotalCounter || fTgtSpeed != 0 || nTgtPwm) {
 			Print();
 		}
+#else
+		PrintPid();
+#endif
 	}
 
 	ulTotalCounter = cur_TotalCounter;
@@ -285,18 +296,37 @@ void Wheel::Print(void)
 {
 	int i;
 
-	Serial.print(ulLastLoopUs); Serial.print(" us");
-	Serial.print(", intr "); Serial.print(anIntr[0]);
-	Serial.print(", Kp "); Serial.print(pPid->GetKp(), 2);
-	Serial.print(", Ki "); Serial.print(pPid->GetKi(), 2);
-	Serial.print(", Kd "); Serial.print(pPid->GetKd(), 2);
-	Serial.print(", tgt "); Serial.print(fTgtSpeed); Serial.print(" mm/s");
-	Serial.print(", cur "); Serial.print(fCurSpeed); Serial.print(" mm/s");
-	Serial.print(", out "); Serial.print(nPwmBias);
+	Serial.print(ulLastLoopUs/1000); Serial.print(" ms");
+	Serial.print(" Intr "); Serial.print(anIntr[0]);
+	Serial.print(" K "); Serial.print(pPid->GetKp(), 2);
+	Serial.print(" "); Serial.print(pPid->GetKi(), 2);
+	Serial.print(" "); Serial.print(pPid->GetKd(), 2);
+	Serial.print(" Tgt "); Serial.print(fTgtSpeed); Serial.print(" mm/s");
+	Serial.print(" Cur "); Serial.print(fCurSpeed); Serial.print(" mm/s");
+	Serial.print(" Out "); Serial.print(nPwmBias);
 	Serial.print(" + "); Serial.print(fPidOutput);
-	Serial.print("= PWM "); Serial.print(nCurPwm);
-	Serial.print(", "); Serial.print(nTgtPwm); Serial.print(", ");
+	Serial.print(" = PWM "); Serial.print(nCurPwm);
+	Serial.print(" "); Serial.print(nTgtPwm);
 	Serial.println("");
+}
+
+void Wheel::PrintPid(void)
+{
+	int i;
+
+	Serial.print(anIntr[0]); Serial.print(" ");
+	Serial.print(fTgtSpeed); Serial.print(" ");
+	Serial.print(fCurSpeed); Serial.print(" ");
+	Serial.print(nCurPwm); Serial.print(" ");
+	Serial.print(pPid->GetKp(), 2); Serial.print(" ");
+	Serial.print(pPid->GetKi(), 2); Serial.print(" ");
+	Serial.print(pPid->GetKd(), 2); Serial.print(" ");
+	if (pPid->GetMode() == AUTOMATIC) {
+		Serial.print("AUTOMATIC ");
+	} else {
+		Serial.print("MANUAL ");
+	}
+	Serial.println("DIRECT");
 }
 
 #define LOOP_MS     10
@@ -419,3 +449,74 @@ void Wheel::Calibrate2(void)
 	}
 }
 
+void Wheel::IncKp(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Kp += 0.1;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
+
+void Wheel::IncKi(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Ki += 0.1;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
+
+void Wheel::IncKd(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Kd += 0.01;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
+
+void Wheel::DecKp(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Kp -= 0.1;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
+
+void Wheel::DecKi(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Ki -= 0.1;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
+
+void Wheel::DecKd(void)
+{
+	double Kp, Ki, Kd;
+
+	Kp = pPid->GetKp();
+	Ki = pPid->GetKi();
+	Kd = pPid->GetKd();
+	Kd -= 0.01;
+	pPid->SetTunings(Kp, Ki, Kd);
+	if (bDiag) Print();
+}
