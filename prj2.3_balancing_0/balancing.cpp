@@ -7,31 +7,68 @@
 AF_DCMotor m3(3, MOTOR34_1KHZ);
 AF_DCMotor m4(4, MOTOR34_1KHZ);
 
-Wheel wheel_left(&count_m3, &total_count_m3, calib_data_m3);
-Wheel wheel_right(&count_m4, &total_count_m4, calib_data_m4);
+Wheel wheel_left(&count_m3, &total_count_m3);
+Wheel wheel_right(&count_m4, &total_count_m4);
 
 double fInput, fOutput, fTarget;
+double fCalibAngle, fCalibAngleSum;
+int nNumSum;
+int32_t nMinAccIntr, nMaxAccIntr;
 
-#define BALANCING_KP	100.0
-#define BALANCING_KI	30.0
+#define BALANCING_KP	50.0
+#define BALANCING_KI	10.0
 #define BALANCING_KD	0.0
+#define INITIAL_TARGET	0
 
 PID gBalancingPid(&fInput, &fOutput, &fTarget, BALANCING_KP, BALANCING_KI, BALANCING_KD, DIRECT);
 
 void balancing_print(void)
 {
 	Serial.print(millis()); Serial.print(" ms");
-	Serial.print(" Intr "); Serial.print(0);
+	Serial.print(" AccIntr "); Serial.print(wheel_left.GetAccIntr());
+	Serial.print(" "); Serial.print(wheel_right.GetAccIntr());
 	Serial.print(" K "); Serial.print(gBalancingPid.GetKp(), 2);
 	Serial.print(" "); Serial.print(gBalancingPid.GetKi(), 2);
 	Serial.print(" "); Serial.print(gBalancingPid.GetKd(), 2);
-	Serial.print(" Tgt "); Serial.print(fTarget, 2); Serial.print(" deg");
+	Serial.print(" Cal "); Serial.print(fCalibAngle, 2); Serial.print(" deg");
 	Serial.print(" Cur "); Serial.print(fInput, 2); Serial.print(" deg");
-	Serial.print(" Out "); Serial.print(0);
-	Serial.print(" + "); Serial.print(fOutput, 2);
-	Serial.print(" = mm/s "); Serial.print(fOutput, 2);
-	Serial.print(" "); Serial.print(0);
-	Serial.println("");
+	Serial.print(" Out "); Serial.print(fOutput, 2); Serial.print(" PWM ");
+	Serial.print(" "); Serial.print(wheel_left.GetCurSpeed(), 2);
+	Serial.print(" "); Serial.print(wheel_right.GetCurSpeed(), 2);
+	Serial.println(" mm/s");
+}
+
+void reset_calibration(void)
+{
+	nNumSum = 0;
+	fCalibAngleSum = 0;
+	nMinAccIntr = 0;
+	nMaxAccIntr = 0;
+	wheel_left.ResetAccIntr();
+	wheel_right.ResetAccIntr();
+	Serial.println(__FUNCTION__);
+}
+
+void auto_calibration(float angle_pitch)
+{
+	int32_t nAccIntr;
+
+	nAccIntr = wheel_left.GetAccIntr() + wheel_right.GetAccIntr();
+	if (nAccIntr < nMinAccIntr)
+		nMinAccIntr = nAccIntr;
+	if (nAccIntr > nMaxAccIntr)
+		nMaxAccIntr = nAccIntr;
+
+	fCalibAngleSum += angle_pitch;
+	nNumSum++;
+
+	if (nMinAccIntr < nAccIntr
+	 && -1 < nAccIntr
+	 && nAccIntr < 1
+	 && nAccIntr < nMaxAccIntr) {
+		fCalibAngle = fCalibAngleSum / nNumSum;
+		reset_calibration();
+	}
 }
 
 void balancing_setup()
@@ -42,16 +79,12 @@ void balancing_setup()
 	wheel_left.AttachMotor(&m3);
 	wheel_right.AttachMotor(&m4);
 
-	//wheel_left.bDiag = 1;
-	//wheel_right.bDiag = 1;
-
 	gBalancingPid.SetSampleTime(10);
 	gBalancingPid.SetMode(AUTOMATIC);
 	gBalancingPid.SetOutputLimits(-MAX_MMPS, MAX_MMPS);
 	
-	fTarget = 0;
+	fTarget = INITIAL_TARGET;
 }
-
 
 void balancing_loop()
 {
@@ -71,11 +104,21 @@ void balancing_loop()
 		return;
 	}
 
-	fInput = angle_pitch;
+	auto_calibration(angle_pitch);
+
+	fInput = angle_pitch - fCalibAngle;
 	gBalancingPid.Compute();
 
-	wheel_left.SetSpeed(fOutput);
-	wheel_right.SetSpeed(fOutput);
+	if (fOutput == 0) {
+		wheel_left.SetPwm(fOutput);
+		wheel_right.SetPwm(fOutput);
+	} else if (fOutput > 0) {
+		wheel_left.SetPwm(fOutput + MIN_PWM);
+		wheel_right.SetPwm(fOutput + MIN_PWM);
+	} else {
+		wheel_left.SetPwm(fOutput - MIN_PWM);
+		wheel_right.SetPwm(fOutput - MIN_PWM);
+	}
 
 	wheel_left.Loop();
 	wheel_right.Loop();
@@ -102,7 +145,7 @@ void balancing_inc_ki(void)
 	Kp = gBalancingPid.GetKp();
 	Ki = gBalancingPid.GetKi();
 	Kd = gBalancingPid.GetKd();
-	Ki += 0.01;
+	Ki += 1;
 	gBalancingPid.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -114,7 +157,7 @@ void balancing_inc_kd(void)
 	Kp = gBalancingPid.GetKp();
 	Ki = gBalancingPid.GetKi();
 	Kd = gBalancingPid.GetKd();
-	Kd += 1;
+	Kd += 0.1;
 	gBalancingPid.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -150,17 +193,19 @@ void balancing_dec_kd(void)
 	Kp = gBalancingPid.GetKp();
 	Ki = gBalancingPid.GetKi();
 	Kd = gBalancingPid.GetKd();
-	Kd -= 0.01;
+	Kd -= 0.1;
 	gBalancingPid.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
 
 void balancing_inc_tgt(void)
 {
-	fTarget += 0.1;
+	fCalibAngle += 0.1;
+	balancing_print();
 }
 
 void balancing_dec_tgt(void)
 {
-	fTarget -= 0.1;
+	fCalibAngle -= 0.1;
+	balancing_print();
 }

@@ -8,6 +8,7 @@ extern void balancing_dec_ki(void);
 extern void balancing_dec_kd(void);
 extern void balancing_inc_tgt(void);
 extern void balancing_dec_tgt(void);
+extern void reset_calibration(void);
 
 #define LOOP_MS     10
 unsigned long loop_timer;
@@ -95,6 +96,7 @@ void check_ir()
 	balancing_dec_kd();
   } else if (ir_code == 0x407e2e01) {
     Serial.println("STOP");
+	reset_calibration();
   } else if (ir_code == 0x7547960e) {
     Serial.println("NEXT");
 	balancing_inc_tgt();
