@@ -14,6 +14,7 @@ double fInput, fOutput, fTarget;
 double fCalibAngle, fCalibAngleSum;
 int nNumSum;
 int32_t nMinAccIntr, nMaxAccIntr;
+int32_t nDir;
 
 #define BALANCING_KP	50.0
 #define BALANCING_KI	10.0
@@ -89,6 +90,7 @@ void balancing_setup()
 void balancing_loop()
 {
 	float angle_pitch;
+	int nPwmL, nPwmR;
 
 	mpu6050_loop();
 
@@ -109,15 +111,22 @@ void balancing_loop()
 	fInput = angle_pitch - fCalibAngle;
 	gBalancingPid.Compute();
 
-	if (fOutput == 0) {
-		wheel_left.SetPwm(fOutput);
-		wheel_right.SetPwm(fOutput);
-	} else if (fOutput > 0) {
-		wheel_left.SetPwm(fOutput + MIN_PWM);
-		wheel_right.SetPwm(fOutput + MIN_PWM);
+	nPwmL = fOutput + nDir;
+	nPwmR = fOutput - nDir;
+
+	if (nPwmL == 0) {
+		wheel_left.SetPwm(0);
+	} else if (nPwmL > 0) {
+		wheel_left.SetPwm(nPwmL + MIN_PWM);
 	} else {
-		wheel_left.SetPwm(fOutput - MIN_PWM);
-		wheel_right.SetPwm(fOutput - MIN_PWM);
+		wheel_left.SetPwm(nPwmL - MIN_PWM);
+	}
+	if (nPwmR == 0) {
+		wheel_right.SetPwm(0);
+	} else if (nPwmR > 0) {
+		wheel_right.SetPwm(nPwmR + MIN_PWM);
+	} else {
+		wheel_right.SetPwm(nPwmR - MIN_PWM);
 	}
 
 	wheel_left.Loop();
@@ -198,14 +207,45 @@ void balancing_dec_kd(void)
 	balancing_print();
 }
 
-void balancing_inc_tgt(void)
+void balancing_inc_cal(void)
 {
 	fCalibAngle += 0.1;
 	balancing_print();
 }
 
-void balancing_dec_tgt(void)
+void balancing_dec_cal(void)
 {
 	fCalibAngle -= 0.1;
+	balancing_print();
+}
+
+void balancing_inc_tgt(void)
+{
+	fTarget += 1;
+	balancing_print();
+}
+
+void balancing_dec_tgt(void)
+{
+	fTarget -= 1;
+	balancing_print();
+}
+
+void balancing_inc_dir(void)
+{
+	nDir += 1;
+	balancing_print();
+}
+
+void balancing_dec_dir(void)
+{
+	nDir -= 1;
+	balancing_print();
+}
+
+void balancing_reset_tgtdir(void)
+{
+	nDir = 0;
+	fTarget = 0;
 	balancing_print();
 }

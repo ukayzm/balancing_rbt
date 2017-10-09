@@ -6,8 +6,13 @@ extern void balancing_inc_kd(void);
 extern void balancing_dec_kp(void);
 extern void balancing_dec_ki(void);
 extern void balancing_dec_kd(void);
+extern void balancing_inc_cal(void);
+extern void balancing_dec_cal(void);
 extern void balancing_inc_tgt(void);
 extern void balancing_dec_tgt(void);
+extern void balancing_inc_dir(void);
+extern void balancing_dec_dir(void);
+extern void balancing_reset_tgtdir(void);
 extern void reset_calibration(void);
 
 #define LOOP_MS     10
@@ -56,20 +61,30 @@ void check_ir()
   if (ir_code == 0) {
     return;
   }
-  if ((last_ir_ms + 250 > millis()) && (ir_code == last_ir_code)) {
-    return;
+  if (ir_code != 0x4de93dc4
+   && ir_code != 0x26e6c1ca
+   && ir_code != 0x6d89e538
+   && ir_code != 0xdad4e90b) {
+    if ((last_ir_ms + 250 > millis()) && (ir_code == last_ir_code)) {
+      return;
+    }
   }
 
   if (ir_code == 0x4de93dc4) {
     Serial.println("^");
+	balancing_inc_tgt();
   } else if (ir_code == 0x26e6c1ca) {
     Serial.println("v");
-  } else if (ir_code == 0xdad4e90b) {
-    Serial.println("<");
+	balancing_dec_tgt();
   } else if (ir_code == 0x6d89e538) {
     Serial.println(">");
+	balancing_inc_dir();
+  } else if (ir_code == 0xdad4e90b) {
+    Serial.println("<");
+	balancing_dec_dir();
   } else if (ir_code == 0x7d399127) {
     Serial.println("OK");
+	balancing_reset_tgtdir();
   } else if (ir_code == 0x68a199f0) {
     Serial.println("REC");
   } else if (ir_code == 0xf169e8b2) {
