@@ -16,6 +16,15 @@ int nNumSum;
 int32_t nMinAccIntr, nMaxAccIntr;
 int32_t nDir;
 
+#define PID_KAS
+
+#if defined(PID_KAS)
+#define WHEEL_KP		2.0
+#define WHEEL_KI		0.0
+#define WHEEL_KD		0.0
+float Kp_wheel, Ki_wheel, Kd_wheel;
+#endif
+
 #define BALANCING_KP	50.0
 #define BALANCING_KI	10.0
 #define BALANCING_KD	0.0
@@ -31,6 +40,11 @@ void balancing_print(void)
 	Serial.print(" K "); Serial.print(gBalancingPid.GetKp(), 2);
 	Serial.print(" "); Serial.print(gBalancingPid.GetKi(), 2);
 	Serial.print(" "); Serial.print(gBalancingPid.GetKd(), 2);
+#if defined(PID_KAS)
+	Serial.print(" Kw "); Serial.print(Kp_wheel, 2);
+	Serial.print(" "); Serial.print(Ki_wheel, 2);
+	Serial.print(" "); Serial.print(Kd_wheel, 2);
+#endif
 	Serial.print(" Cal "); Serial.print(fCalibAngle, 2); Serial.print(" deg");
 	Serial.print(" Cur "); Serial.print(fInput, 2); Serial.print(" deg");
 	Serial.print(" Out "); Serial.print(fOutput, 2); Serial.print(" PWM ");
@@ -85,7 +99,42 @@ void balancing_setup()
 	gBalancingPid.SetOutputLimits(-MAX_MMPS, MAX_MMPS);
 	
 	fTarget = INITIAL_TARGET;
+
+#if defined(PID_KAS)
+	Kp_wheel = WHEEL_KP;
+	Ki_wheel = WHEEL_KI;
+	Kd_wheel = WHEEL_KD;
+#endif
 }
+
+void compute_pid_basic(float angle_pitch)
+{
+	auto_calibration(angle_pitch);
+
+	fInput = angle_pitch - fCalibAngle;
+	gBalancingPid.Compute();
+}
+
+#if defined(PID_KAS)
+void compute_pid_kas(float angle_pitch)
+{
+	int32_t count_l, count_r;
+	static int32_t last_count_l, last_count_r;
+
+	fInput = angle_pitch - fCalibAngle;
+	gBalancingPid.Compute();
+
+	count_l = wheel_left.GetAccIntr();
+	wheel_left.ResetAccIntr();
+	count_r = wheel_right.GetAccIntr();
+	wheel_right.ResetAccIntr();
+
+	fOutput += Kp_wheel * (count_l + count_r) + Kd_wheel * (count_l + count_r - (last_count_r + last_count_l));
+
+	last_count_l = count_l;
+	last_count_r = count_r;
+}
+#endif
 
 void balancing_loop()
 {
@@ -106,10 +155,11 @@ void balancing_loop()
 		return;
 	}
 
-	auto_calibration(angle_pitch);
-
-	fInput = angle_pitch - fCalibAngle;
-	gBalancingPid.Compute();
+#if defined(PID_KAS)
+	compute_pid_kas(angle_pitch);
+#else
+	compute_pid_basic(angle_pitch);
+#endif
 
 	nPwmL = fOutput + nDir;
 	nPwmR = fOutput - nDir;
@@ -249,3 +299,20 @@ void balancing_reset_tgtdir(void)
 	fTarget = 0;
 	balancing_print();
 }
+
+void balancing_inc_wheel_kp(void)
+{
+#if defined(PID_KAS)
+	Kp_wheel += 0.1;
+	balancing_print();
+#endif
+}
+
+void balancing_dec_wheel_kp(void)
+{
+#if defined(PID_KAS)
+	Kp_wheel -= 0.1;
+	balancing_print();
+#endif
+}
+

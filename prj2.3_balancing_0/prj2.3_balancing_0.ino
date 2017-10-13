@@ -14,6 +14,8 @@ extern void balancing_inc_dir(void);
 extern void balancing_dec_dir(void);
 extern void balancing_reset_tgtdir(void);
 extern void reset_calibration(void);
+extern void balancing_inc_wheel_kp(void);
+extern void balancing_dec_wheel_kp(void);
 
 #define LOOP_MS     10
 unsigned long loop_timer;
@@ -114,10 +116,10 @@ void check_ir()
 	reset_calibration();
   } else if (ir_code == 0x7547960e) {
     Serial.println("NEXT");
-	balancing_inc_tgt();
+	balancing_inc_wheel_kp();
   } else if (ir_code == 0xd1921028) {
     Serial.println("PREV");
-	balancing_dec_tgt();
+	balancing_dec_wheel_kp();
   } else if (ir_code == 0x26ecbcf3) {
     Serial.println("(0)");
   } else if (ir_code == 0x9004b206) {
