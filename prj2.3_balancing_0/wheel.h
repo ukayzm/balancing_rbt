@@ -12,9 +12,9 @@ extern void init_encoders(void);
 
 #define WHEEL_RADIUS 42 /* mm */
 #define MM_PER_INTR  0.4 /* mm */
-#define MS_0_255     50  /* ms (0 mm/s -> max speed 320 mm/s) */
-#define MAX_MMPS     320.0 /* mm per second */
-#define MIN_PWM		 70  /* the minimum PWM value to spin wheel */
+#define MS_0_255     50  /* ms (0 mm/s -> max_speed mm/s) */
+#define MAX_MMPS     420.0 /* mm per second */
+#define MIN_PWM		 65  /* the minimum PWM value to spin wheel */
 
 #define NUM_INTR_SAVE	2
 

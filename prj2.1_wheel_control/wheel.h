@@ -10,11 +10,23 @@ extern unsigned long total_count_m3, total_count_m4;
 
 extern void init_encoders(void);
 
+
+//#define CIC_30_GM_PWR_9V
+#define CIC_30_GM_PWR_12V
+
+#if defined (CIC_30_GM_PWR_9V)
 #define WHEEL_RADIUS 42 /* mm */
 #define MM_PER_INTR  0.4 /* mm */
-#define MS_0_255     50  /* ms (0 mm/s -> max speed 320 mm/s) */
+#define MS_0_255     50  /* ms (0 mm/s -> max_speed mm/s) */
 #define MAX_MMPS     320.0 /* mm per second */
 #define MIN_PWM		 70  /* the minimum PWM value to spin wheel */
+#elif defined (CIC_30_GM_PWR_12V)
+#define WHEEL_RADIUS 42 /* mm */
+#define MM_PER_INTR  0.4 /* mm */
+#define MS_0_255     50  /* ms (0 mm/s -> max_speed mm/s) */
+#define MAX_MMPS     420.0 /* mm per second */
+#define MIN_PWM		 60  /* the minimum PWM value to spin wheel */
+#endif
 
 #define NUM_INTR_SAVE	2
 
