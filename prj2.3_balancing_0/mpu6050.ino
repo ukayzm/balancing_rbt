@@ -206,7 +206,7 @@ void mpu6050_loop() {
 
 float get_pitch_angle(void)
 {
-	/* in this robot, X is pitch. ;-) */
-	return -kalAngleX;
+	/* in this robot, Y is pitch. */
+	return kalAngleY;
 }
 
