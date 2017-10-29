@@ -1,9 +1,7 @@
 #include "Arduino.h"
 
-extern void sr04_setup(void);
-extern void sr04_loop(void);
-extern void sharpir_setup(void);
-extern void sharpir_loop(void);
+extern void radar_setup(void);
+extern void radar_loop(void);
 
 #define LOOP_MS     10
 unsigned long loop_timer;
@@ -14,7 +12,7 @@ void setup() {
 
   Serial.begin(115200);
 
-  sr04_setup();
+  radar_setup();
 
   Serial.println("start...");
 
@@ -27,7 +25,7 @@ void setup() {
 
 void loop()
 {
-  sr04_loop();
+  radar_loop();
 
   /*
    * The angle calculations are tuned for a loop time of LOOP_MS milliseconds.
