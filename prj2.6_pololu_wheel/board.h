@@ -13,12 +13,12 @@ extern void setup_board(void);
 #define M1_INTR_PIN		3
 #define M1_DIR_PIN		5
 
-#define M0_PWM_PIN		6
-#define M0_CTRL0_PIN	7
-#define M0_CTRL1_PIN	8
+#define M0_PWM_PIN		10
+#define M0_CTRL0_PIN	8
+#define M0_CTRL1_PIN	7
 #define M1_PWM_PIN		9
-#define M1_CTRL0_PIN	12
-#define M1_CTRL1_PIN	13
+#define M1_CTRL0_PIN	13
+#define M1_CTRL1_PIN	12
 
 #define IR_PIN			A3
 

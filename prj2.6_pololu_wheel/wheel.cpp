@@ -2,12 +2,13 @@
 #include "wheel.h"
 
 
-Wheel::Wheel(int16_t *counter, unsigned long *total_counter, int pwm_pin, int ctrl0_pin, int ctrl1_pin, uint16_t init_pwm, uint16_t min_pwm)
+Wheel::Wheel(int16_t *counter, unsigned long *total_counter, int pwm_pin, int ctrl0_pin, int ctrl1_pin, uint16_t init_pwm, uint16_t min_pwm, float min_speed)
 {
 	pCounter = counter;
 	pulTotalCounter = total_counter;
 	unInitPwm = init_pwm;
 	unMinPwm = min_pwm;
+	fMinSpeed = min_speed;
 
 	pin_pwm = pwm_pin;
 	pin_ctrl0 = ctrl0_pin;
@@ -20,10 +21,43 @@ Wheel::Wheel(int16_t *counter, unsigned long *total_counter, int pwm_pin, int ct
 
 void Wheel::SetPwm(int16_t pwm)
 {
+	if (pwm > 255)
+		pwm = 255;
+	if (pwm < -255)
+		pwm = -255;
+	nCurPwm = pwm;
+
+	setMotorDir(pwm);
 	setMotorPwm(pwm);
 }
 
-void Wheel::Loop(void)
+void Wheel::setMotorDir(int16_t pwm)
+{
+	if (pwm > 0) {
+		digitalWrite(pin_ctrl0, LOW);
+		digitalWrite(pin_ctrl1, HIGH);
+	} else if (pwm < 0) {
+		digitalWrite(pin_ctrl1, LOW);
+		digitalWrite(pin_ctrl0, HIGH);
+	} else {
+		digitalWrite(pin_ctrl0, LOW);
+		digitalWrite(pin_ctrl1, LOW);
+	}
+}
+
+void Wheel::setMotorPwm(int16_t pwm)
+{
+	if (pwm < 0)
+		pwm = -pwm;
+#if 0
+	if (abs(fCurSpeed) < fMinSpeed) {
+		pwm = unInitPwm;
+	}
+#endif
+	analogWrite(pin_pwm, pwm);
+}
+
+void Wheel::Update(void)
 {
 	unsigned long cur_us = micros();
 	unsigned long curTotalIntr;
@@ -35,7 +69,7 @@ void Wheel::Loop(void)
 	}
 	anIntr[0] = *pCounter;
 	*pCounter = 0;
-	aulInterval[0] = cur_us - ulLastLoopUs;
+	aulInterval[0] = cur_us - ulLastUpdateUs;
 	curTotalIntr = *pulTotalCounter;
 
 	/* calculate current speed of wheel */
@@ -52,7 +86,9 @@ void Wheel::Loop(void)
 		fCurSpeed = 0;
 	}
 
-	ulLastLoopUs = cur_us;
+	setMotorPwm(nCurPwm);
+
+	ulLastUpdateUs = cur_us;
 	nAccIntr += anIntr[0];
 
 	/* diagnostic print */
@@ -65,38 +101,15 @@ void Wheel::Loop(void)
 	ulTotalIntr = curTotalIntr;
 }
 
-void Wheel::setMotorPwm(int16_t pwm)
-{
-	if (pwm > 255)
-		pwm = 255;
-	if (pwm < -255)
-		pwm = -255;
-	/* dumb speed up */
-	if (pwm > 0) {
-		digitalWrite(pin_ctrl0, LOW);
-		digitalWrite(pin_ctrl1, HIGH);
-	} else if (pwm < 0) {
-		digitalWrite(pin_ctrl1, LOW);
-		digitalWrite(pin_ctrl0, HIGH);
-	} else {
-		digitalWrite(pin_ctrl0, LOW);
-		digitalWrite(pin_ctrl1, LOW);
-	}
-	nCurPwm = pwm;
-	if (pwm < 0)
-		pwm = -pwm;
-	analogWrite(pin_pwm, pwm);
-}
-
 void Wheel::Print(void)
 {
 	int i;
 
-	Serial.print(ulLastLoopUs/1000); Serial.print(" ms");
-	Serial.print(" Intr "); Serial.print(anIntr[0]);
+	Serial.print(ulLastUpdateUs/1000); Serial.print(" msec");
+	Serial.print("\tIntr "); Serial.print(anIntr[0]);
 	Serial.print(" "); Serial.print(nAccIntr);
-	Serial.print(" Speed "); Serial.print(fCurSpeed, 2); Serial.print(" mm/s");
-	Serial.print(" Out "); Serial.print(nCurPwm);
+	Serial.print("\tPWM "); Serial.print(nCurPwm); Serial.print("     ");
+	Serial.print("\tSpeed "); Serial.print(fCurSpeed, 2); Serial.print(" mm/s");
 	Serial.println("");
 }
 
@@ -118,6 +131,11 @@ void Wheel::ResetAccIntr(void)
 float Wheel::GetCurSpeed(void)
 {
 	return fCurSpeed;
+}
+
+float Wheel::GetMinSpeed(void)
+{
+	return fMinSpeed;
 }
 
 uint16_t Wheel::GetInitPwm(void)
