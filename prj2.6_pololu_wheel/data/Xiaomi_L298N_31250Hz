@@ -1,0 +1,224 @@
+Power supply: Xiaomi to USB 12 V
+
+PIN 2 divisor = 1 PWM frequency = 31250 / 1 = 31250 Hz 
+
+Motor driver: L298N
+
+start...
+
+(1)
+
+PWM 0    	msec 1006 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 10    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 20    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 30    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 40    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 50    	msec 1006 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 60    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 70    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 80    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 90    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 100    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 110    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 120    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 130    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 140    	msec 1013 	intr 896  	average RPM 130   	final speed 1003.95 mm/s 
+
+PWM 150    	msec 1013 	intr 1223  	average RPM 177   	final speed 1096.08 mm/s 
+
+PWM 160    	msec 1013 	intr 1317  	average RPM 191   	final speed 1186.02 mm/s 
+
+PWM 170    	msec 1012 	intr 1400  	average RPM 203   	final speed 1276.74 mm/s 
+
+PWM 180    	msec 1013 	intr 1475  	average RPM 214   	final speed 1368.48 mm/s 
+
+PWM 190    	msec 1013 	intr 1543  	average RPM 223   	final speed 1459.71 mm/s 
+
+PWM 200    	msec 1013 	intr 1595  	average RPM 231   	final speed 1460.87 mm/s 
+
+PWM 210    	msec 1013 	intr 1643  	average RPM 238   	final speed 1552.17 mm/s 
+
+PWM 220    	msec 1012 	intr 1682  	average RPM 244   	final speed 1550.94 mm/s 
+
+PWM 230    	msec 1013 	intr 1710  	average RPM 248   	final speed 1549.11 mm/s 
+
+PWM 240    	msec 1013 	intr 1720  	average RPM 249   	final speed 1550.33 mm/s 
+
+PWM 250    	msec 1013 	intr 1721  	average RPM 249   	final speed 1552.78 mm/s 
+
+PWM 260    	msec 1013 	intr 1723  	average RPM 250   	final speed 1639.59 mm/s 
+
+PWM 260    	msec 1012 	intr 1722  	average RPM 250   	final speed 1552.17 mm/s 
+
+PWM 250    	msec 1013 	intr 1722  	average RPM 249   	final speed 1549.72 mm/s 
+
+PWM 240    	msec 1013 	intr 1722  	average RPM 249   	final speed 1550.33 mm/s 
+
+PWM 230    	msec 1014 	intr 1715  	average RPM 248   	final speed 1637.65 mm/s 
+
+PWM 220    	msec 1013 	intr 1688  	average RPM 245   	final speed 1549.11 mm/s 
+
+PWM 210    	msec 1012 	intr 1653  	average RPM 240   	final speed 1461.44 mm/s 
+
+PWM 200    	msec 1013 	intr 1609  	average RPM 233   	final speed 1460.29 mm/s 
+
+PWM 190    	msec 1013 	intr 1555  	average RPM 225   	final speed 1367.94 mm/s 
+
+PWM 180    	msec 1013 	intr 1497  	average RPM 217   	final speed 1369.56 mm/s 
+
+PWM 170    	msec 1013 	intr 1430  	average RPM 207   	final speed 1278.76 mm/s 
+
+PWM 160    	msec 1012 	intr 1353  	average RPM 196   	final speed 1186.95 mm/s 
+
+PWM 150    	msec 1013 	intr 1274  	average RPM 184   	final speed 1184.61 mm/s 
+
+PWM 140    	msec 1012 	intr 1187  	average RPM 172   	final speed 1003.95 mm/s 
+
+PWM 130    	msec 1013 	intr 1099  	average RPM 159   	final speed 1004.74 mm/s 
+
+PWM 120    	msec 1013 	intr 1002  	average RPM 145   	final speed 913.40 mm/s 
+
+PWM 110    	msec 1012 	intr 908  	average RPM 131   	final speed 820.44 mm/s 
+
+PWM 100    	msec 1013 	intr 812  	average RPM 117   	final speed 730.43 mm/s 
+
+PWM 90    	msec 1012 	intr 714  	average RPM 103   	final speed 638.37 mm/s 
+
+PWM 80    	msec 1012 	intr 617  	average RPM 89   	final speed 547.18 mm/s 
+
+PWM 70    	msec 1011 	intr 521  	average RPM 75   	final speed 456.34 mm/s 
+
+PWM 60    	msec 1011 	intr 430  	average RPM 62   	final speed 364.93 mm/s 
+
+PWM 50    	msec 1013 	intr 334  	average RPM 48   	final speed 273.70 mm/s 
+
+PWM 40    	msec 1012 	intr 261  	average RPM 37   	final speed 182.32 mm/s 
+
+PWM 30    	msec 1006 	intr 42  	average RPM 6   	final speed 0.00 mm/s 
+
+PWM 20    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 10    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 0    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -10    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -20    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -30    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -40    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -50    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -60    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -70    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -80    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -90    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -100    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -110    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -120    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -130    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -140    	msec 1013 	intr -934  	average RPM -135   	final speed -1094.78 mm/s 
+
+PWM -150    	msec 1012 	intr -1261  	average RPM -183   	final speed -1186.02 mm/s 
+
+PWM -160    	msec 1012 	intr -1361  	average RPM -197   	final speed -1185.55 mm/s 
+
+PWM -170    	msec 1013 	intr -1441  	average RPM -209   	final speed -1278.76 mm/s 
+
+PWM -180    	msec 1014 	intr -1521  	average RPM -220   	final speed -1453.97 mm/s 
+
+PWM -190    	msec 1013 	intr -1588  	average RPM -230   	final speed -1457.98 mm/s 
+
+PWM -200    	msec 1012 	intr -1650  	average RPM -239   	final speed -1550.94 mm/s 
+
+PWM -210    	msec 1013 	intr -1700  	average RPM -246   	final speed -1550.33 mm/s 
+
+PWM -220    	msec 1013 	intr -1739  	average RPM -252   	final speed -1552.17 mm/s 
+
+PWM -230    	msec 1013 	intr -1768  	average RPM -256   	final speed -1550.94 mm/s 
+
+PWM -240    	msec 1013 	intr -1778  	average RPM -258   	final speed -1552.78 mm/s 
+
+PWM -250    	msec 1012 	intr -1781  	average RPM -258   	final speed -1640.88 mm/s 
+
+PWM -260    	msec 1013 	intr -1783  	average RPM -258   	final speed -1642.18 mm/s 
+
+PWM -260    	msec 1013 	intr -1781  	average RPM -258   	final speed -1641.53 mm/s 
+
+PWM -250    	msec 1013 	intr -1782  	average RPM -258   	final speed -1642.18 mm/s 
+
+PWM -240    	msec 1013 	intr -1782  	average RPM -258   	final speed -1642.82 mm/s 
+
+PWM -230    	msec 1012 	intr -1773  	average RPM -257   	final speed -1642.18 mm/s 
+
+PWM -220    	msec 1013 	intr -1746  	average RPM -253   	final speed -1552.17 mm/s 
+
+PWM -210    	msec 1013 	intr -1708  	average RPM -247   	final speed -1550.33 mm/s 
+
+PWM -200    	msec 1013 	intr -1658  	average RPM -240   	final speed -1459.71 mm/s 
+
+PWM -190    	msec 1013 	intr -1604  	average RPM -232   	final speed -1460.87 mm/s 
+
+PWM -180    	msec 1013 	intr -1536  	average RPM -222   	final speed -1368.48 mm/s 
+
+PWM -170    	msec 1013 	intr -1463  	average RPM -212   	final speed -1278.76 mm/s 
+
+PWM -160    	msec 1012 	intr -1383  	average RPM -200   	final speed -1185.55 mm/s 
+
+PWM -150    	msec 1013 	intr -1293  	average RPM -187   	final speed -1184.61 mm/s 
+
+PWM -140    	msec 1013 	intr -1200  	average RPM -174   	final speed -1094.78 mm/s 
+
+PWM -130    	msec 1012 	intr -1106  	average RPM -160   	final speed -1002.36 mm/s 
+
+PWM -120    	msec 1013 	intr -1010  	average RPM -146   	final speed -913.04 mm/s 
+
+PWM -110    	msec 1013 	intr -907  	average RPM -131   	final speed -819.79 mm/s 
+
+PWM -100    	msec 1013 	intr -806  	average RPM -117   	final speed -639.38 mm/s 
+
+PWM -90    	msec 1013 	intr -703  	average RPM -102   	final speed -547.39 mm/s 
+
+PWM -80    	msec 1012 	intr -598  	average RPM -86   	final speed -547.18 mm/s 
+
+PWM -70    	msec 1013 	intr -506  	average RPM -73   	final speed -456.34 mm/s 
+
+PWM -60    	msec 1013 	intr -412  	average RPM -59   	final speed -364.78 mm/s 
+
+PWM -50    	msec 1013 	intr -316  	average RPM -45   	final speed -274.02 mm/s 
+
+PWM -40    	msec 1011 	intr -251  	average RPM -36   	final speed -182.32 mm/s 
+
+PWM -30    	msec 1006 	intr -38  	average RPM -5   	final speed 0.00 mm/s 
+
+PWM -20    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM -10    	msec 1004 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+
+PWM 0    	msec 1005 	intr 0  	average RPM 0   	final speed 0.00 mm/s 
+

@@ -10,7 +10,9 @@ extern void init_motors(void);
 
 
 #define WHEEL_RADIUS 60 /* mm */
-#define MM_PER_INTR  0.924 /* mm / intr */
+#define ENCODER_CPR  12	/* interrupt count per motor revolution */
+#define GEAR_RATIO   34	/* motor rev per wheel rev */
+#define MM_PER_INTR  (WHEEL_RADIUS * 2 * 3.141592 / (ENCODER_CPR * GEAR_RATIO)) /* mm / intr */
 
 /* the initial PWM value to start wheel spinning */
 #define INITIAL_PWM_M0	 120

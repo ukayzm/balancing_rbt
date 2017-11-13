@@ -10,42 +10,73 @@ Wheel wheel_right(&count_m1, &total_count_m1, M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1
 #define LOOP_MS     10
 unsigned long loop_timer;
 
+void print_wheel_test1(Wheel *w, int msec)
+{
+	int32_t rpm;
+	int32_t intr = w->GetAccIntr();
+	w->ResetAccIntr();
+
+	Serial.print("msec "); Serial.print(msec); Serial.print(" \t");
+	Serial.print("intr "); Serial.print(intr); Serial.print("  \t");
+	rpm = intr * 60 * 1000 / ENCODER_CPR / GEAR_RATIO / msec;
+	Serial.print("average RPM "); Serial.print(rpm); Serial.print("   \t");
+	Serial.print("final speed "); Serial.print(w->GetCurSpeed(), 2); Serial.print(" mm/s ");
+}
+
 void do_test1(Wheel *w0, Wheel *w1)
 {
 	int16_t pwm;
-	double speed;
-	int i;
+	int i, msec;
 
 	/* forward */
-	for (pwm = -260; pwm <= 260; pwm += 10) {
-		Serial.print("pwm ");	Serial.print(pwm);	Serial.print(": ");
+	for (pwm = 0; pwm <= 260; pwm += 10) {
+		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
 		w0->SetPwm(pwm);
 		if (w1) w1->SetPwm(pwm);
+		msec = millis();
 		for (i = 0; i < 100; i++) {
 			delay(10);
 			w0->Update();
 			if (w1) w1->Update();
 		}
-		speed = w0->GetCurSpeed();
-		Serial.print(speed, 2); Serial.print(" mm/s ");
-		if (w1) speed = w1->GetCurSpeed();
-		Serial.print(speed, 2); Serial.println(" mm/s");
+		msec = millis() - msec;
+		print_wheel_test1(w0, msec);
+		if (w1) print_wheel_test1(w1, msec);
+		Serial.println();
 	}
 
 	/* backward */
 	for (pwm = 260; pwm >= -260; pwm -= 10) {
-		Serial.print("pwm ");	Serial.print(pwm);	Serial.print(": ");
+		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
 		w0->SetPwm(pwm);
 		if (w1) w1->SetPwm(pwm);
+		msec = millis();
 		for (i = 0; i < 100; i++) {
 			delay(10);
 			w0->Update();
 			if (w1) w1->Update();
 		}
-		speed = w0->GetCurSpeed();
-		Serial.print(speed, 2); Serial.print(" mm/s ");
-		if (w1) speed = w1->GetCurSpeed();
-		Serial.print(speed, 2); Serial.println(" mm/s");
+		msec = millis() - msec;
+		print_wheel_test1(w0, msec);
+		if (w1) print_wheel_test1(w1, msec);
+		Serial.println();
+	}
+
+	/* forward */
+	for (pwm = -260; pwm <= 0; pwm += 10) {
+		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
+		w0->SetPwm(pwm);
+		if (w1) w1->SetPwm(pwm);
+		msec = millis();
+		for (i = 0; i < 100; i++) {
+			delay(10);
+			w0->Update();
+			if (w1) w1->Update();
+		}
+		msec = millis() - msec;
+		print_wheel_test1(w0, msec);
+		if (w1) print_wheel_test1(w1, msec);
+		Serial.println();
 	}
 
 	w0->SetPwm(0);
