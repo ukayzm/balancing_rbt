@@ -1,5 +1,6 @@
 #include "board.h"
 #include "wheel.h"
+#include "wheel_test.h"
 
 extern void setup_IR(void);
 extern uint32_t recv_IR(void);
@@ -10,116 +11,6 @@ Wheel wheel_right(&count_m1, &total_count_m1, M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1
 #define LOOP_MS     10
 unsigned long loop_timer;
 
-void print_wheel_test1(Wheel *w, int msec)
-{
-	int32_t rpm;
-	int32_t intr = w->GetAccIntr();
-	w->ResetAccIntr();
-
-	Serial.print("msec "); Serial.print(msec); Serial.print(" \t");
-	Serial.print("intr "); Serial.print(intr); Serial.print("  \t");
-	rpm = intr * 60 * 1000 / ENCODER_CPR / GEAR_RATIO / msec;
-	Serial.print("average RPM "); Serial.print(rpm); Serial.print("   \t");
-	Serial.print("final speed "); Serial.print(w->GetCurSpeed(), 2); Serial.print(" mm/s ");
-}
-
-void do_test1(Wheel *w0, Wheel *w1)
-{
-	int16_t pwm;
-	int i, msec;
-
-	/* forward */
-	for (pwm = 0; pwm <= 260; pwm += 10) {
-		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
-		w0->SetPwm(pwm);
-		if (w1) w1->SetPwm(pwm);
-		msec = millis();
-		for (i = 0; i < 100; i++) {
-			delay(10);
-			w0->Update();
-			if (w1) w1->Update();
-		}
-		msec = millis() - msec;
-		print_wheel_test1(w0, msec);
-		if (w1) print_wheel_test1(w1, msec);
-		Serial.println();
-	}
-
-	/* backward */
-	for (pwm = 260; pwm >= -260; pwm -= 10) {
-		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
-		w0->SetPwm(pwm);
-		if (w1) w1->SetPwm(pwm);
-		msec = millis();
-		for (i = 0; i < 100; i++) {
-			delay(10);
-			w0->Update();
-			if (w1) w1->Update();
-		}
-		msec = millis() - msec;
-		print_wheel_test1(w0, msec);
-		if (w1) print_wheel_test1(w1, msec);
-		Serial.println();
-	}
-
-	/* forward */
-	for (pwm = -260; pwm <= 0; pwm += 10) {
-		Serial.print("PWM ");	Serial.print(pwm);	Serial.print("    \t");
-		w0->SetPwm(pwm);
-		if (w1) w1->SetPwm(pwm);
-		msec = millis();
-		for (i = 0; i < 100; i++) {
-			delay(10);
-			w0->Update();
-			if (w1) w1->Update();
-		}
-		msec = millis() - msec;
-		print_wheel_test1(w0, msec);
-		if (w1) print_wheel_test1(w1, msec);
-		Serial.println();
-	}
-
-	w0->SetPwm(0);
-	if (w1) w1->SetPwm(0);
-	w0->Update();
-	if (w1) w1->Update();
-}
-
-void do_test_wheel(Wheel *w)
-{
-	int i;
-
-	w->bDiag = 1;
-
-	for (i = 0; i < 100; i++) {
-		w->SetPwm(w->GetMinPwm());
-		delay(10);
-		w->Update();
-	}
-
-	for (i = 0; i < 100; i++) {
-		w->SetPwm(w->GetInitPwm());
-		delay(10);
-		w->Update();
-#if 1
-		if (w->GetCurSpeed() > w->GetMinSpeed()) {
-			break;
-		}
-#endif
-	}
-
-	for (i = 0; i < 100; i++) {
-		w->SetPwm(w->GetMinPwm());
-		delay(10);
-		w->Update();
-	}
-
-	for (i = 0; i < 100; i++) {
-		w->SetPwm(0);
-		delay(10);
-		w->Update();
-	}
-}
 
 void setup() {
   // put your setup code here, to run once:
@@ -130,7 +21,6 @@ void setup() {
 
   setup_board();
 
-  //do_test1(&wheel_left, &wheel_right);
   Serial.println("start...");
 }
 
@@ -151,10 +41,10 @@ void loop()
         Serial.println("v");
       } else if (ir_code == 0xdad4e90b) {
         Serial.println("<");
-  		do_test_wheel(&wheel_left);
+  		do_wheel_test2(&wheel_left);
       } else if (ir_code == 0x6d89e538) {
         Serial.println(">");
-  		do_test_wheel(&wheel_right);
+  		do_wheel_test2(&wheel_right);
       } else if (ir_code == 0x7d399127) {
         Serial.println("OK");
       } else if (ir_code == 0x68a199f0) {
@@ -185,19 +75,22 @@ void loop()
         Serial.println("(0)");
       } else if (ir_code == 0x9004b206) {
         Serial.println("(1)");
-  		do_test1(&wheel_left, NULL);
+  		do_wheel_test1(&wheel_left, NULL);
       } else if (ir_code == 0xc35f14b9) {
         Serial.println("(2)");
-  		do_test1(&wheel_left, &wheel_right);
+  		do_wheel_test1(&wheel_left, &wheel_right);
       } else if (ir_code == 0xa6034632) {
         Serial.println("(3)");
-  		do_test1(&wheel_right, NULL);
+  		do_wheel_test1(&wheel_right, NULL);
       } else if (ir_code == 0x45897fb8) {
         Serial.println("(4)");
+  		do_wheel_test_pwm(&wheel_left, NULL);
       } else if (ir_code == 0x6a8bf890) {
         Serial.println("(5)");
+  		do_wheel_test_pwm(&wheel_left, &wheel_right);
       } else if (ir_code == 0x08a2cf97) {
         Serial.println("(6)");
+  		do_wheel_test_pwm(&wheel_right, NULL);
       } else if (ir_code == 0x462c837e) {
         Serial.println("(7)");
       } else if (ir_code == 0x42c5c050) {

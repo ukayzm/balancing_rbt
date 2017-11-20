@@ -86,6 +86,18 @@ void setPwmFrequency(int pin, int divisor)
 	}
 }
 
+void setDivisorTimer1(int divisor)
+{
+	Serial.print("Timer1 for PIN 9, 10: PWM frequency = 31250 / ");
+	Serial.print(divisor);
+	Serial.print(" = ");
+	Serial.print(31250 / divisor);
+	Serial.print(" Hz");
+	Serial.println();
+
+	setPwmFrequency(9, divisor);
+}
+
 void setup_board()
 {
 	pinMode(M0_INTR_PIN, INPUT_PULLUP);
@@ -98,8 +110,8 @@ void setup_board()
 	pinMode(M1_DIR_PIN, INPUT_PULLUP);
 	count_m1 = 0;
 
-	Serial.print("Power supply: Xiaomi to USB 12 V");
-	Serial.println();
+	Serial.println("Power supply: Xiaomi to USB 12 V");
+	Serial.println("Motor driver: L298N");
 
 	/*
 	 * For M0_PWM_PIN 9 and M1_PWM_PIN 10, the frequency for the divisors are:
@@ -109,23 +121,6 @@ void setup_board()
 	 * o   122 Hz for 256
 	 * o    30 Hz for 1024
 	 */
-#define M0_PWM_DIVISOR 1
-#define M1_PWM_DIVISOR 1
-	setPwmFrequency(M0_PWM_PIN, M0_PWM_DIVISOR);
-	setPwmFrequency(M1_PWM_PIN, M1_PWM_DIVISOR);
-
-	Serial.print("PIN ");
-	Serial.print(M0_INTR_PIN);
-	Serial.print(" divisor = ");
-	Serial.print(M0_PWM_DIVISOR);
-	Serial.print(" PWM frequency = 31250 / ");
-	Serial.print(M0_PWM_DIVISOR);
-	Serial.print(" = ");
-	Serial.print(31250 / M0_PWM_DIVISOR);
-	Serial.print(" Hz ");
-	Serial.println();
-
-	Serial.print("Motor driver: L298N");
-	Serial.println();
+	setDivisorTimer1(1);
 }
 

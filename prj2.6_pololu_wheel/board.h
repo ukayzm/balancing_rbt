@@ -7,6 +7,7 @@ extern int16_t count_m0, count_m1;
 extern unsigned long total_count_m0, total_count_m1;
 
 extern void setup_board(void);
+extern void setDivisorTimer1(int divisor);
 
 #define M0_INTR_PIN		2
 #define M0_DIR_PIN 		4
