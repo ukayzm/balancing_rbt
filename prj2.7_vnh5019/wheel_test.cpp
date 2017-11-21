@@ -1,19 +1,19 @@
+#include <Arduino.h>
 #include "board.h"
 #include "wheel_test.h"
 
 void print_wheel_test_header1(void)
 {
-	Serial.println("pwm,\tintr,\tRPM,\tspeed");
+	Serial.println("pwm,intr,RPM,speed");
 }
-void print_wheel_test1(Wheel *w)
+void print_wheel_test1(Wheel *w, int msec)
 {
 	int32_t rpm;
 	int32_t intr;
 	
-	Serial.print(intr); Serial.print(",\t");
+	Serial.print(",\t");
 	if (w) {
 		intr = w->GetAccIntr();
-		w->ResetAccIntr();
 
 		Serial.print(intr); Serial.print(",\t");
 		rpm = intr * 60 * 1000 / ENCODER_CPR / GEAR_RATIO / msec;
@@ -31,8 +31,13 @@ void measure_wheel_test1(int pwm, Wheel *w0, Wheel *w1)
 	Serial.print(pwm);
 	w0->SetPwm(pwm);
 	if (w1) w1->SetPwm(pwm);
+	delay(200);
+	w0->Update();
+	if (w1) w1->Update();
+	w0->ResetAccIntr();
+	if (w1) w1->ResetAccIntr();
 	msec = millis();
-	for (i = 0; i < 100; i++) {
+	for (i = 0; i < 80; i++) {
 		delay(10);
 		w0->Update();
 		if (w1) w1->Update();
@@ -75,7 +80,7 @@ void do_wheel_test1(Wheel *w0, Wheel *w1)
 
 void do_wheel_test_pwm(Wheel *w0, Wheel *w1)
 {
-	int divisor = {1024, 256, 64, 8, 1}
+	int divisor[] = {1024, 256, 64, 8, 1};
 	int i;
 
 	for (i = 0; i < sizeof(divisor) / sizeof(divisor[0]); i++) {
@@ -85,7 +90,7 @@ void do_wheel_test_pwm(Wheel *w0, Wheel *w1)
 	setDivisorTimer1(1);
 }
 
-void do_test_wheel2(Wheel *w)
+void do_wheel_test2(Wheel *w)
 {
 	int i;
 

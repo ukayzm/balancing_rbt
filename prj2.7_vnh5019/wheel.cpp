@@ -2,13 +2,13 @@
 #include "wheel.h"
 
 
-Wheel::Wheel(int16_t *counter, unsigned long *total_counter, int pwm_pin, int ctrl0_pin, int ctrl1_pin, uint16_t init_pwm, uint16_t min_pwm, float min_speed)
+Wheel::Wheel(int16_t *counter, unsigned long *total_counter)
 {
 	pCounter = counter;
 	pulTotalCounter = total_counter;
 }
 
-Wheel::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
+void Wheel::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
 {
 	pin_pwm = pwm_pin;
 	pin_ctrl0 = ctrl0_pin;
@@ -21,7 +21,7 @@ Wheel::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
 	pinMode(pin_cs, INPUT);
 }
 
-Wheel::SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, float min_speed)
+void Wheel::SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, float min_speed)
 {
 	unInitPwm = init_pwm;
 	unMinPwm = min_pwm;
@@ -66,7 +66,7 @@ void Wheel::setMotorPwm(int16_t pwm)
 	analogWrite(pin_pwm, pwm);
 }
 
-void Wheel::GetCurrent(void)
+uint16_t Wheel::GetCurrent(void)
 {
 	// 5V / 1024 ADC counts / 144 mV per A = 34 mA per count
 	return analogRead(pin_cs) * 34;

@@ -38,10 +38,10 @@ void loop()
         Serial.println("v");
       } else if (ir_code == 0xdad4e90b) {
         Serial.println("<");
-  		do_test_wheel(&wheel_left);
+        do_wheel_test2(&wheel_left);
       } else if (ir_code == 0x6d89e538) {
         Serial.println(">");
-  		do_test_wheel(&wheel_right);
+        do_wheel_test2(&wheel_right);
       } else if (ir_code == 0x7d399127) {
         Serial.println("OK");
       } else if (ir_code == 0x68a199f0) {
@@ -72,19 +72,22 @@ void loop()
         Serial.println("(0)");
       } else if (ir_code == 0x9004b206) {
         Serial.println("(1)");
-  		do_test1(&wheel_left, NULL);
+        do_wheel_test1(&wheel_left, NULL);
       } else if (ir_code == 0xc35f14b9) {
         Serial.println("(2)");
-  		do_test1(&wheel_left, &wheel_right);
+        do_wheel_test1(&wheel_left, &wheel_right);
       } else if (ir_code == 0xa6034632) {
         Serial.println("(3)");
-  		do_test1(&wheel_right, NULL);
+        do_wheel_test1(&wheel_right, NULL);
       } else if (ir_code == 0x45897fb8) {
         Serial.println("(4)");
+        do_wheel_test_pwm(&wheel_left, NULL);
       } else if (ir_code == 0x6a8bf890) {
         Serial.println("(5)");
+        do_wheel_test_pwm(&wheel_left, &wheel_right);
       } else if (ir_code == 0x08a2cf97) {
         Serial.println("(6)");
+        do_wheel_test_pwm(&wheel_right, NULL);
       } else if (ir_code == 0x462c837e) {
         Serial.println("(7)");
       } else if (ir_code == 0x42c5c050) {
