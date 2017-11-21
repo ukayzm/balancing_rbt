@@ -4,7 +4,7 @@
 
 void print_wheel_test_header1(void)
 {
-	Serial.println("pwm,\tintr,\tRPM,\tspeed");
+	Serial.println("pwm,intr,RPM,speed");
 }
 void print_wheel_test1(Wheel *w, int msec)
 {
