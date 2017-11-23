@@ -2,15 +2,16 @@
 #define __BOARD_H__
 
 #include <inttypes.h>
-#include "wheel.h"
+#include "motor.h"
 
 extern int16_t count_m0, count_m1;
 extern unsigned long total_count_m0, total_count_m1;
 
 extern void setup_board(void);
 extern void setDivisorTimer1(int divisor);
+extern uint16_t getPwmFrequencyTimer1(void);
 
-extern Wheel wheel_left, wheel_right;
+extern Motor motor_left, motor_right;
 
 /* VNH5019 pin */
 #define M1INA			13	/* 2 -> 13 */

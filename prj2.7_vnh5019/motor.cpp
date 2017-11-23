@@ -1,14 +1,14 @@
 #include "Arduino.h"
-#include "wheel.h"
+#include "motor.h"
 
 
-Wheel::Wheel(int16_t *counter, unsigned long *total_counter)
+Motor::Motor(int16_t *counter, unsigned long *total_counter)
 {
 	pCounter = counter;
 	pulTotalCounter = total_counter;
 }
 
-void Wheel::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
+void Motor::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
 {
 	pin_pwm = pwm_pin;
 	pin_ctrl0 = ctrl0_pin;
@@ -21,14 +21,14 @@ void Wheel::SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin)
 	pinMode(pin_cs, INPUT);
 }
 
-void Wheel::SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, float min_speed)
+void Motor::SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, uint16_t min_rpm)
 {
 	unInitPwm = init_pwm;
 	unMinPwm = min_pwm;
-	fMinSpeed = min_speed;
+	unMinRpm = min_rpm;
 }
 
-void Wheel::SetPwm(int16_t pwm)
+void Motor::SetPwm(int16_t pwm)
 {
 	if (pwm > 255)
 		pwm = 255;
@@ -40,7 +40,7 @@ void Wheel::SetPwm(int16_t pwm)
 	setMotorPwm(pwm);
 }
 
-void Wheel::setMotorDir(int16_t pwm)
+void Motor::setMotorDir(int16_t pwm)
 {
 	if (pwm > 0) {
 		digitalWrite(pin_ctrl0, LOW);
@@ -54,29 +54,28 @@ void Wheel::setMotorDir(int16_t pwm)
 	}
 }
 
-void Wheel::setMotorPwm(int16_t pwm)
+void Motor::setMotorPwm(int16_t pwm)
 {
 	if (pwm < 0)
 		pwm = -pwm;
-#if 0
-	if (abs(fCurSpeed) < fMinSpeed) {
+	if (unMinRpm > 0 && abs(nCurRpm) < unMinRpm) {
 		pwm = unInitPwm;
 	}
-#endif
 	analogWrite(pin_pwm, pwm);
 }
 
-uint16_t Wheel::GetCurrent(void)
+uint16_t Motor::GetCurrent(void)
 {
 	// 5V / 1024 ADC counts / 144 mV per A = 34 mA per count
 	return analogRead(pin_cs) * 34;
 }
 
-void Wheel::Update(void)
+void Motor::Update(void)
 {
 	unsigned long cur_us = micros();
 	unsigned long curTotalIntr;
-	int i, num_intr;
+	unsigned long num_intr;
+	int i;
 
 	for (i = NUM_INTR_SAVE - 1; i > 0; i--) {
 		anIntr[i] = anIntr[i-1];
@@ -94,11 +93,10 @@ void Wheel::Update(void)
 		num_intr += anIntr[i];
 		ulIntervalUs += aulInterval[i];
 	}
-	ulIntervalUs /= NUM_INTR_SAVE;
 	if (ulIntervalUs && num_intr) {
-		fCurSpeed = (float)(num_intr * 1000.0 * MM_PER_INTR) / NUM_INTR_SAVE / (float)ulIntervalUs * 1000.0;
+		nCurRpm = num_intr * 60 * 1000 / INTR_PER_REV * 1000 / ulIntervalUs;
 	} else {
-		fCurSpeed = 0;
+		nCurRpm = 0;
 	}
 
 	setMotorPwm(nCurPwm);
@@ -116,49 +114,48 @@ void Wheel::Update(void)
 	ulTotalIntr = curTotalIntr;
 }
 
-void Wheel::Print(void)
+void Motor::Print(void)
 {
 	int i;
 
-	Serial.print(ulLastUpdateUs/1000); Serial.print(" msec");
-	Serial.print("\tIntr "); Serial.print(anIntr[0]);
+	Serial.print("intr "); Serial.print(anIntr[0]);
 	Serial.print(" "); Serial.print(nAccIntr);
 	Serial.print("\tPWM "); Serial.print(nCurPwm); Serial.print("     ");
-	Serial.print("\tSpeed "); Serial.print(fCurSpeed, 2); Serial.print(" mm/s");
+	Serial.print("\tRPM "); Serial.print(nCurRpm);
 	Serial.println("");
 }
 
-int16_t Wheel::GetCurPwm(void)
+int16_t Motor::GetCurPwm(void)
 {
 	return nCurPwm;
 }
 
-int32_t Wheel::GetAccIntr(void)
+int32_t Motor::GetAccIntr(void)
 {
 	return nAccIntr;
 }
 
-void Wheel::ResetAccIntr(void)
+void Motor::ResetAccIntr(void)
 {
 	nAccIntr = 0;
 }
 
-float Wheel::GetCurSpeed(void)
+int16_t Motor::GetCurRpm(void)
 {
-	return fCurSpeed;
+	return nCurRpm;
 }
 
-float Wheel::GetMinSpeed(void)
+uint16_t Motor::GetMinRpm(void)
 {
-	return fMinSpeed;
+	return unMinRpm;
 }
 
-uint16_t Wheel::GetInitPwm(void)
+uint16_t Motor::GetInitPwm(void)
 {
 	return unInitPwm;
 }
 
-uint16_t Wheel::GetMinPwm(void)
+uint16_t Motor::GetMinPwm(void)
 {
 	return unMinPwm;
 }

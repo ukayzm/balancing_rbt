@@ -1,5 +1,5 @@
-#ifndef __WHEEL_H__
-#define __WHEEL_H__
+#ifndef __MOTOR_H__
+#define __MOTOR_H__
 
 #include <inttypes.h>
 
@@ -8,43 +8,39 @@ extern unsigned long total_count_m0, total_count_m1;
 
 extern void init_motors(void);
 
-
-#define WHEEL_RADIUS 60 /* mm */
-#define ENCODER_CPR  12	/* interrupt count per motor revolution */
-#define GEAR_RATIO   34	/* motor rev per wheel rev */
-#define MM_PER_INTR  (WHEEL_RADIUS * 2 * 3.141592 / (ENCODER_CPR * GEAR_RATIO)) /* mm / intr */
+#define INTR_PER_REV	(12 * 34)	/* interrupt count per motor revolution */
 
 /* the initial PWM value to start wheel spinning */
-#define INITIAL_PWM_M0	 120
-#define INITIAL_PWM_M1	 113
+#define INITIAL_PWM_M0	 50
+#define INITIAL_PWM_M1	 50
 
 /* the minimum PWM value to keep wheel spinning */
-#define MIN_PWM_M0	 40
-#define MIN_PWM_M1	 32
+#define MIN_PWM_M0	 10
+#define MIN_PWM_M1	 10
 
 /* speed (mm/sec) at the minimum PWM */
-#define MIN_SPEED_M0	200
-#define MIN_SPEED_M1	200
+#define MIN_RPM_M0	45
+#define MIN_RPM_M1	45
 
-#define NUM_INTR_SAVE	1
+#define NUM_INTR_SAVE	5
 
-class Wheel
+class Motor
 {
 public:
-	Wheel(int16_t *counter, unsigned long *total_counter);
+	Motor(int16_t *counter, unsigned long *total_counter);
 	void SetPIN(int pwm_pin, int ctrl0_pin, int ctrl1_pin, int cs_pin);
-	void SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, float min_speed);
+	void SetCharacteristics(uint16_t init_pwm, uint16_t min_pwm, uint16_t min_rpm);
 	void SetPwm(int16_t pwm);			/* PWM -255 ~ +255 */
 	void Update(void);
 	void Print(void);
 	uint8_t bDiag;
 	int16_t GetCurPwm(void);
-	float GetCurSpeed(void);
+	int16_t GetCurRpm(void);
 	int32_t GetAccIntr(void);
 	void ResetAccIntr(void);
 	uint16_t GetInitPwm(void);
 	uint16_t GetMinPwm(void);
-	float GetMinSpeed(void);
+	uint16_t GetMinRpm(void);
 	uint16_t GetCurrent(void);
 private:
 	int pin_pwm, pin_ctrl0, pin_ctrl1, pin_cs;
@@ -57,12 +53,12 @@ private:
 	unsigned long ulTotalIntr;
 	int32_t nAccIntr;
 	int16_t nCurPwm;
+	int16_t nCurRpm;	/* current speed in mm per second */
 	uint16_t unInitPwm;
 	uint16_t unMinPwm;
-	float fMinSpeed;
+	uint16_t unMinRpm;
 	void setMotorDir(int16_t pwm);
 	void setMotorPwm(int16_t pwm);
-	float fCurSpeed;	/* current speed in mm per second */
 };
 
-#endif // __WHEEL_H__
+#endif // __MOTOR_H__

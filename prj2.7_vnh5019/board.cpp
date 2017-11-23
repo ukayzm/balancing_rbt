@@ -1,11 +1,10 @@
 #include "Arduino.h"
 #include "board.h"
-#include "wheel.h"
 
 int16_t count_m0, count_m1;
 unsigned long total_count_m0, total_count_m1;
-Wheel wheel_left(&count_m0, &total_count_m0);
-Wheel wheel_right(&count_m1, &total_count_m1);
+Motor motor_left(&count_m0, &total_count_m0);
+Motor motor_right(&count_m1, &total_count_m1);
 
 
 void on_intr_m0(void)
@@ -102,6 +101,36 @@ void setDivisorTimer1(int divisor)
 	setPwmFrequency(9, divisor);
 }
 
+	/*
+	 * For M0_PWM_PIN 9 and M1_PWM_PIN 10, the frequency for the divisors are:
+	 * o 31250 Hz for 1
+	 * o  3906 Hz for 8
+	 * o   488 Hz for 64
+	 * o   122 Hz for 256
+	 * o    30 Hz for 1024
+	 */
+uint16_t getPwmFrequencyTimer1(void)
+{
+	byte mode = TCCR1B & 0b00000111;
+	switch (mode) {
+	case 0x1:
+		return 31250;
+	case 0x2:
+		return 3906;
+	case 0x3:
+		return 488;
+	case 0x4:
+		return 122;
+	case 0x5:
+		return 30;
+	default:
+		Serial.print("unknown (");
+		Serial.print(mode);
+		Serial.println(")");
+		break;
+	}
+}
+
 void setup_board()
 {
 	pinMode(M0_INTR_PIN, INPUT_PULLUP);
@@ -114,10 +143,11 @@ void setup_board()
 	pinMode(M1_DIR_PIN, INPUT_PULLUP);
 	count_m1 = 0;
 
-	wheel_left.SetPIN(M0_PWM_PIN, M0_CTRL0_PIN, M0_CTRL1_PIN, M0_CURRENT_PIN);
-	wheel_left.SetCharacteristics(INITIAL_PWM_M0, MIN_PWM_M0, MIN_SPEED_M0);
-	wheel_right.SetPIN(M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1_PIN, M1_CURRENT_PIN);
-	wheel_right.SetCharacteristics(INITIAL_PWM_M1, MIN_PWM_M1, MIN_SPEED_M1);
+	motor_left.SetPIN(M0_PWM_PIN, M0_CTRL0_PIN, M0_CTRL1_PIN, M0_CURRENT_PIN);
+	motor_right.SetPIN(M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1_PIN, M1_CURRENT_PIN);
+
+	motor_left.SetCharacteristics(INITIAL_PWM_M0, MIN_PWM_M0, MIN_RPM_M0);
+	motor_right.SetCharacteristics(INITIAL_PWM_M1, MIN_PWM_M1, MIN_RPM_M1);
 
 	Serial.println("Power supply: Xiaomi to USB 12 V");
 	Serial.println("Motor driver: VNH5019");
