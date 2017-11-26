@@ -11,18 +11,18 @@ extern void init_motors(void);
 #define INTR_PER_REV	(12 * 34)	/* interrupt count per motor revolution */
 
 /* the initial PWM value to start wheel spinning */
-#define INITIAL_PWM_M0	 50
-#define INITIAL_PWM_M1	 50
+#define INITIAL_PWM_M0	 40
+#define INITIAL_PWM_M1	 42
 
 /* the minimum PWM value to keep wheel spinning */
-#define MIN_PWM_M0	 10
-#define MIN_PWM_M1	 10
+#define MIN_PWM_M0	 5
+#define MIN_PWM_M1	 5
 
 /* speed (mm/sec) at the minimum PWM */
-#define MIN_RPM_M0	45
-#define MIN_RPM_M1	45
+#define MIN_RPM_M0	42
+#define MIN_RPM_M1	42
 
-#define NUM_INTR_SAVE	5
+#define NUM_INTR_SAVE	3
 
 class Motor
 {
@@ -35,6 +35,7 @@ public:
 	void Print(void);
 	uint8_t bDiag;
 	int16_t GetCurPwm(void);
+	int16_t GetModifiedPwm(void);
 	int16_t GetCurRpm(void);
 	int32_t GetAccIntr(void);
 	void ResetAccIntr(void);
@@ -53,6 +54,7 @@ private:
 	unsigned long ulTotalIntr;
 	int32_t nAccIntr;
 	int16_t nCurPwm;
+	int16_t nModifiedPwm;
 	int16_t nCurRpm;	/* current speed in mm per second */
 	uint16_t unInitPwm;
 	uint16_t unMinPwm;

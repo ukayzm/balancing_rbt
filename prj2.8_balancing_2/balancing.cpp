@@ -9,7 +9,7 @@
 #define SPEED_KI		0.0
 #define SPEED_KD		0.0
 
-#define ANGLE_KP	8.0
+#define ANGLE_KP	1.0
 #define ANGLE_KI	0.0
 #define ANGLE_KD	0.0
 
@@ -93,6 +93,8 @@ void balancing_loop()
 
 	compute_pid(angle_pitch);
 
+	fPwm = fPwm * abs(fPwm);
+
 	nPwmL = fPwm + nDir;
 	nPwmR = fPwm - nDir;
 
@@ -112,19 +114,21 @@ void balancing_loop()
 		motor_right.SetPwm(nPwmR);
 	}
 #else
+	motor_left.SetCharacteristics(0, 0, 0);
+	motor_right.SetCharacteristics(0, 0, 0);
 	if (nPwmL == 0) {
 		motor_left.SetPwm(0);
 	} else if (nPwmL > 0) {
-		motor_left.SetPwm(nPwmL + MIN_PWM_M0);
+		motor_left.SetPwm(nPwmL + INITIAL_PWM_M0);
 	} else {
-		motor_left.SetPwm(nPwmL - MIN_PWM_M0);
+		motor_left.SetPwm(nPwmL - INITIAL_PWM_M0);
 	}
 	if (nPwmR == 0) {
 		motor_right.SetPwm(0);
 	} else if (nPwmR > 0) {
-		motor_right.SetPwm(nPwmR + MIN_PWM_M1);
+		motor_right.SetPwm(nPwmR + INITIAL_PWM_M1);
 	} else {
-		motor_right.SetPwm(nPwmR - MIN_PWM_M1);
+		motor_right.SetPwm(nPwmR - INITIAL_PWM_M1);
 	}
 #endif
 
@@ -210,7 +214,7 @@ void balancing_inc_angle_kp(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kp += 1;
+	Kp += 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -222,7 +226,7 @@ void balancing_dec_angle_kp(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kp -= 1;
+	Kp -= 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -234,7 +238,7 @@ void balancing_inc_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki += 0.1;
+	Ki += 0.01;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -246,7 +250,7 @@ void balancing_dec_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki -= 0.1;
+	Ki -= 0.01;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -258,7 +262,7 @@ void balancing_inc_angle_kd(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kd += 0.1;
+	Kd += 0.01;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }
@@ -270,7 +274,7 @@ void balancing_dec_angle_kd(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kd -= 0.1;
+	Kd -= 0.01;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print();
 }

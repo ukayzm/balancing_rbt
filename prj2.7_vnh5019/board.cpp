@@ -146,10 +146,12 @@ void setup_board()
 	motor_left.SetPIN(M0_PWM_PIN, M0_CTRL0_PIN, M0_CTRL1_PIN, M0_CURRENT_PIN);
 	motor_right.SetPIN(M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1_PIN, M1_CURRENT_PIN);
 
+#if 1
 	motor_left.SetCharacteristics(INITIAL_PWM_M0, MIN_PWM_M0, MIN_RPM_M0);
 	motor_right.SetCharacteristics(INITIAL_PWM_M1, MIN_PWM_M1, MIN_RPM_M1);
+#endif
 
-	Serial.println("Power supply: Xiaomi to USB 12 V");
+	Serial.println("Power supply: 3S LiPo Battery");
 	Serial.println("Motor driver: VNH5019");
 
 	/*

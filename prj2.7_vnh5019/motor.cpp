@@ -54,14 +54,52 @@ void Motor::setMotorDir(int16_t pwm)
 	}
 }
 
+//#define MOTOR_PWM_MIDIFICATION_DEBUG
 void Motor::setMotorPwm(int16_t pwm)
 {
-	if (pwm < 0)
-		pwm = -pwm;
-	if (unMinRpm > 0 && abs(nCurRpm) < unMinRpm) {
-		pwm = unInitPwm;
+	if (pwm != 0 && unMinRpm > 0 && abs(pwm) < unInitPwm) {
+		if (abs(nCurRpm) < unMinRpm) {
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print("(1) ");
+Serial.print(pwm);
+#endif
+			if (pwm > 0) {
+				pwm = unInitPwm;
+			} else {
+				pwm = -unInitPwm;
+			}
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print(" -> ");
+Serial.println(pwm);
+#endif
+		} else if (nCurRpm > 0 && 0 > pwm) {
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print("(2) ");
+Serial.print(pwm);
+#endif
+			pwm = -unInitPwm;
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print(" -> ");
+Serial.println(pwm);
+#endif
+		} else if (nCurRpm < 0 && 0 < pwm) {
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print("(3) ");
+Serial.print(pwm);
+#endif
+			pwm = unInitPwm;
+#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
+Serial.print(" -> ");
+Serial.println(pwm);
+#endif
+		}
 	}
-	analogWrite(pin_pwm, pwm);
+	nModifiedPwm = pwm;
+	if (pwm >= 0) {
+		analogWrite(pin_pwm, pwm);
+	} else {
+		analogWrite(pin_pwm, -pwm);
+	}
 }
 
 uint16_t Motor::GetCurrent(void)
@@ -128,6 +166,11 @@ void Motor::Print(void)
 int16_t Motor::GetCurPwm(void)
 {
 	return nCurPwm;
+}
+
+int16_t Motor::GetModifiedPwm(void)
+{
+	return nModifiedPwm;
 }
 
 int32_t Motor::GetAccIntr(void)

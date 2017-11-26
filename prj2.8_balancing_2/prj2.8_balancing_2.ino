@@ -48,7 +48,7 @@ void loop()
 
   loop_ms += LOOP_MS;
 
-  if ((loop_ms % 2) == 1) {
+  if ((loop_ms % 10) == 1) {
     mpu6050_loop();
   }
   if ((loop_ms % 10) == 0) {
