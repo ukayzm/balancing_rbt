@@ -46,4 +46,11 @@ extern Motor motor_left, motor_right;
 
 #define IR_PIN			A3
 
+
+/* msec */
+#define INTERVAL_MPU6050	10
+#define INTERVAL_IR			10
+#define INTERVAL_BALANCING	10
+
+
 #endif // __BOARD_H__

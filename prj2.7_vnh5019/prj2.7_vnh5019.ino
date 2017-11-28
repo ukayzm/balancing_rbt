@@ -38,10 +38,8 @@ void loop()
         Serial.println("v");
       } else if (ir_code == 0xdad4e90b) {
         Serial.println("<");
-        do_motor_test3(&motor_left);
       } else if (ir_code == 0x6d89e538) {
         Serial.println(">");
-        do_motor_test3(&motor_right);
       } else if (ir_code == 0x7d399127) {
         Serial.println("OK");
       } else if (ir_code == 0x68a199f0) {
@@ -70,34 +68,29 @@ void loop()
         Serial.println("PREV");
       } else if (ir_code == 0x26ecbcf3) {
         Serial.println("(0)");
-        do_motor_test4(&motor_left);
+        do_motor_test_pwm(&motor_left, &motor_right);
       } else if (ir_code == 0x9004b206) {
         Serial.println("(1)");
-        do_motor_test1(&motor_left, NULL);
+        do_motor_test1(&motor_left, &motor_right);
       } else if (ir_code == 0xc35f14b9) {
         Serial.println("(2)");
-        do_motor_test1(&motor_left, &motor_right);
+        do_motor_test2(&motor_left, &motor_right);
       } else if (ir_code == 0xa6034632) {
         Serial.println("(3)");
-        do_motor_test1(&motor_right, NULL);
+        do_motor_test3(&motor_left, &motor_right);
       } else if (ir_code == 0x45897fb8) {
         Serial.println("(4)");
-        do_motor_test_pwm(&motor_left, NULL);
+        do_motor_test4(&motor_left);
       } else if (ir_code == 0x6a8bf890) {
         Serial.println("(5)");
-        do_motor_test_pwm(&motor_left, &motor_right);
       } else if (ir_code == 0x08a2cf97) {
         Serial.println("(6)");
-        do_motor_test_pwm(&motor_right, NULL);
       } else if (ir_code == 0x462c837e) {
         Serial.println("(7)");
-        do_motor_test2(&motor_left, NULL);
       } else if (ir_code == 0x42c5c050) {
         Serial.println("(8)");
-        do_motor_test2(&motor_left, &motor_right);
       } else if (ir_code == 0x67c83928) {
         Serial.println("(9)");
-        do_motor_test2(&motor_right, NULL);
       } else if (ir_code == 0x6bef8366) {
         Serial.println("PWR");
       } else if (ir_code == 0xbe663d0a) {

@@ -35,7 +35,7 @@ public:
 	void Print(void);
 	uint8_t bDiag;
 	int16_t GetCurPwm(void);
-	int16_t GetModifiedPwm(void);
+	int16_t GetTgtPwm(void);
 	int16_t GetCurRpm(void);
 	int32_t GetAccIntr(void);
 	void ResetAccIntr(void);
@@ -54,13 +54,14 @@ private:
 	unsigned long ulTotalIntr;
 	int32_t nAccIntr;
 	int16_t nCurPwm;
-	int16_t nModifiedPwm;
+	int16_t nTgtPwm;
 	int16_t nCurRpm;	/* current speed in mm per second */
 	uint16_t unInitPwm;
 	uint16_t unMinPwm;
 	uint16_t unMinRpm;
 	void setMotorDir(int16_t pwm);
 	void setMotorPwm(int16_t pwm);
+	int calibratePwmAtLowSpeed(int pwm);
 };
 
 #endif // __MOTOR_H__

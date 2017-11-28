@@ -7,7 +7,7 @@ void print_motor_test_header1(void)
 	Serial.println("pwm_freq,pwm,intr,RPM,instant_RPM");
 }
 
-void print_motor_test1(Motor *m, int msec)
+void print_motor_test1(Motor *m, unsigned long msec)
 {
 	int32_t rpm;
 	int32_t intr;
@@ -17,7 +17,7 @@ void print_motor_test1(Motor *m, int msec)
 		intr = m->GetAccIntr();
 
 		Serial.print(intr); Serial.print(",\t");
-		rpm = intr * 60 * 1000 / INTR_PER_REV / msec;
+		rpm = intr * 60 * 1000 / INTR_PER_REV / (long)msec;
 		Serial.print(rpm);
 		Serial.print(",\t");
 		Serial.print(m->GetCurRpm());
@@ -28,7 +28,8 @@ void print_motor_test1(Motor *m, int msec)
 
 void measure_motor_test1(int pwm, Motor *m0, Motor *m1)
 {
-	int i, msec;
+	int i;
+	unsigned long msec;
 	uint16_t freq = getPwmFrequencyTimer1();
 
 	Serial.print(freq);
@@ -42,8 +43,8 @@ void measure_motor_test1(int pwm, Motor *m0, Motor *m1)
 	m0->ResetAccIntr();
 	if (m1) m1->ResetAccIntr();
 	msec = millis();
-	for (i = 0; i < 80; i++) {
-		delay(10);
+	for (i = 0; i < 800 / INTERVAL_MOTOR_UPDATE; i++) {
+		delay(INTERVAL_MOTOR_UPDATE);
 		m0->Update();
 		if (m1) m1->Update();
 	}
@@ -95,6 +96,13 @@ void do_motor_test_pwm(Motor *m0, Motor *m1)
 	setDivisorTimer1(1);
 }
 
+
+/*
+ * motor test2
+ * 1. to get initial pwm value to start wheel spinning when increasing pwm
+ * 2. to get minimum pwm value to keep wheel spinning when decreasing pwm
+ * 3. to get minimum RPM value to keep wheel spinning when decreasing pwm
+ */
 #define MAX_PWM_IN_TEST2	60
 
 void do_motor_test2(Motor *m0, Motor *m1)
@@ -127,61 +135,80 @@ void do_motor_test2(Motor *m0, Motor *m1)
 	if (m1) m1->Update();
 }
 
-void do_motor_test3(Motor *m)
+#define INTERVAL_MOTOR_UPDATE3	30
+
+void print_motor_test_header3(void)
 {
-	int i;
-
-	m->bDiag = 1;
-
-	for (i = 0; i < 100; i++) {
-		m->SetPwm(m->GetMinPwm());
-		delay(10);
-		m->Update();
-	}
-
-	for (i = 0; i < 100; i++) {
-		m->SetPwm(m->GetInitPwm());
-		delay(10);
-		m->Update();
-#if 1
-		if (m->GetCurRpm() > m->GetMinRpm()) {
-			break;
-		}
-#endif
-	}
-
-	for (i = 0; i < 100; i++) {
-		m->SetPwm(m->GetMinPwm());
-		delay(10);
-		m->Update();
-	}
-
-	for (i = 0; i < 100; i++) {
-		m->SetPwm(0);
-		delay(10);
-		m->Update();
-	}
-
-	m->bDiag = 0;
+	Serial.println("pwm_freq,pwm,intr,RPM,instant_RPM");
 }
 
-void print_motor_test4_header(void)
+void do_motor_test3_unit(int pwm, Motor *m0, Motor *m1)
 {
-	Serial.println("pwm_freq,pwm,modified_pwm,intr,RPM");
-}
-void print_motor_test4(Motor *m)
-{
-	int32_t intr = m->GetAccIntr();
-	int16_t pwm = m->GetCurPwm();
-	int16_t modified_pwm = m->GetModifiedPwm();
-	int16_t rpm = m->GetCurRpm();
+	unsigned long msec;
 	uint16_t freq = getPwmFrequencyTimer1();
 
 	Serial.print(freq);
 	Serial.print(",\t");
 	Serial.print(pwm);
+
+	msec = millis();
+	m0->ResetAccIntr();
+	m1->ResetAccIntr();
+	delay(INTERVAL_MOTOR_UPDATE3);
+	m0->Update();
+	m1->Update();
+	msec = millis() - msec;
+	print_motor_test1(m0, msec);
+	print_motor_test1(m1, msec);
+
+	Serial.println();
+}
+
+void do_motor_test3(Motor *m0, Motor *m1)
+{
+	int i, pwm;
+
+	print_motor_test_header3();
+	for (pwm = 0; pwm < 30; pwm++) {
+		m0->SetPwm(pwm);
+		m1->SetPwm(pwm);
+		for (i = 0; i < 500 / INTERVAL_MOTOR_UPDATE3; i++) {
+			do_motor_test3_unit(pwm, m0, m1);
+		}
+	}
+
+	print_motor_test_header3();
+	for (pwm = 30; pwm > 0; pwm--) {
+		m0->SetPwm(pwm);
+		m1->SetPwm(pwm);
+		for (i = 0; i < 500 / INTERVAL_MOTOR_UPDATE3; i++) {
+			do_motor_test3_unit(pwm, m0, m1);
+		}
+	}
+
+	m0->SetPwm(0);
+	m0->SetPwm(0);
+	m1->Update();
+	m1->Update();
+}
+
+void print_motor_test4_header(void)
+{
+	Serial.println("pwm_freq,tgt_pwm,cur_pwm,intr,RPM");
+}
+void print_motor_test4(Motor *m)
+{
+	int32_t intr = m->GetAccIntr();
+	int16_t cur_pwm = m->GetCurPwm();
+	int16_t tgt_pwm = m->GetTgtPwm();
+	int16_t rpm = m->GetCurRpm();
+	uint16_t freq = getPwmFrequencyTimer1();
+
+	Serial.print(freq);
 	Serial.print(",\t");
-	Serial.print(modified_pwm);
+	Serial.print(tgt_pwm);
+	Serial.print(",\t");
+	Serial.print(cur_pwm);
 	Serial.print(",\t");
 	Serial.print(intr);
 	Serial.print(",\t");
@@ -197,8 +224,8 @@ void do_motor_test4_unit(Motor *m, int pwm)
 
 	m->SetPwm(pwm);
 	m->Update();
-	for (i = 0; i < 100; i++) {
-		delay(10);
+	for (i = 0; i < 1000 / INTERVAL_MOTOR_UPDATE; i++) {
+		delay(INTERVAL_MOTOR_UPDATE);
 		m->Update();
 		print_motor_test4(m);
 		m->ResetAccIntr();

@@ -48,13 +48,13 @@ void loop()
 
   loop_ms += LOOP_MS;
 
-  if ((loop_ms % 10) == 1) {
+  if ((loop_ms % INTERVAL_MPU6050) == 1) {
     mpu6050_loop();
   }
-  if ((loop_ms % 10) == 0) {
+  if ((loop_ms % INTERVAL_IR) == 0) {
     check_ir();
   }
-  if ((loop_ms % 20) == 0) {
+  if ((loop_ms % INTERVAL_BALANCING) == 0) {
     balancing_loop();
   }
 

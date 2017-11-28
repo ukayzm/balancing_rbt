@@ -34,9 +34,10 @@ void Motor::SetPwm(int16_t pwm)
 		pwm = 255;
 	if (pwm < -255)
 		pwm = -255;
-	nCurPwm = pwm;
+	nTgtPwm = pwm;
 
 	setMotorDir(pwm);
+	pwm = calibratePwmAtLowSpeed(pwm);
 	setMotorPwm(pwm);
 }
 
@@ -54,8 +55,7 @@ void Motor::setMotorDir(int16_t pwm)
 	}
 }
 
-//#define MOTOR_PWM_MIDIFICATION_DEBUG
-void Motor::setMotorPwm(int16_t pwm)
+int Motor::calibratePwmAtLowSpeed(int pwm)
 {
 	if (pwm != 0 && unMinRpm > 0 && abs(pwm) < unInitPwm) {
 		if (abs(nCurRpm) < unMinRpm) {
@@ -94,7 +94,13 @@ Serial.println(pwm);
 #endif
 		}
 	}
-	nModifiedPwm = pwm;
+	return pwm;
+}
+
+//#define MOTOR_PWM_MIDIFICATION_DEBUG
+void Motor::setMotorPwm(int16_t pwm)
+{
+	nCurPwm = pwm;
 	if (pwm >= 0) {
 		analogWrite(pin_pwm, pwm);
 	} else {
@@ -137,14 +143,18 @@ void Motor::Update(void)
 		nCurRpm = 0;
 	}
 
-	setMotorPwm(nCurPwm);
+#if 0
+	setMotorPwm(calibratePwmAtLowSpeed(nTgtPwm));
+#else
+	setMotorPwm(nTgtPwm);
+#endif
 
 	ulLastUpdateUs = cur_us;
 	nAccIntr += anIntr[0];
 
 	/* diagnostic print */
 	if (bDiag) {
-		if (ulTotalIntr != curTotalIntr || nCurPwm) {
+		if (ulTotalIntr != curTotalIntr || nTgtPwm) {
 			Print();
 		}
 	}
@@ -168,9 +178,9 @@ int16_t Motor::GetCurPwm(void)
 	return nCurPwm;
 }
 
-int16_t Motor::GetModifiedPwm(void)
+int16_t Motor::GetTgtPwm(void)
 {
-	return nModifiedPwm;
+	return nTgtPwm;
 }
 
 int32_t Motor::GetAccIntr(void)

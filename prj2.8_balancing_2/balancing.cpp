@@ -33,8 +33,10 @@ void balancing_print(void)
 	Serial.print("\tTgtAngle "); Serial.print(fTgtAngle, 2);
 	Serial.print("\tCurAngle "); Serial.print(get_pitch_angle(), 2);
 	Serial.print("\tPWM val "); Serial.print(fPwm, 2);
-	Serial.print("\tAccIntr "); Serial.print(motor_left.GetAccIntr());
-	Serial.print(" "); Serial.print(motor_right.GetAccIntr());
+	Serial.print("\t"); Serial.print(motor_left.GetModifiedPwm());
+	Serial.print("\t"); Serial.print(motor_right.GetModifiedPwm());
+	//Serial.print("\tAccIntr "); Serial.print(motor_left.GetAccIntr());
+	//Serial.print(" "); Serial.print(motor_right.GetAccIntr());
 	Serial.print("\tRPM\t"); Serial.print(motor_left.GetCurRpm());
 	Serial.print("\t"); Serial.print(motor_right.GetCurRpm());
 	Serial.println("");
@@ -42,11 +44,11 @@ void balancing_print(void)
 
 void balancing_setup()
 {
-	gPidSpeed.SetSampleTime(10);
+	gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
 	gPidSpeed.SetMode(AUTOMATIC);
 	gPidSpeed.SetOutputLimits(-10, 10);
 
-	gPidAngle.SetSampleTime(10);
+	gPidAngle.SetSampleTime(INTERVAL_BALANCING);
 	gPidAngle.SetMode(AUTOMATIC);
 	gPidAngle.SetOutputLimits(-255, 255);
 }
