@@ -167,7 +167,7 @@ void mpu6050_loop() {
   if (gyroYangle < -180 || gyroYangle > 180)
     gyroYangle = kalAngleY;
 
-#if 0
+#if 1
   /* Print Data */
 #if 0 // Set to 1 to activate
   Serial.print(accX); Serial.print("\t");

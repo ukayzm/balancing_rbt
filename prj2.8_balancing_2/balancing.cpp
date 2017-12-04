@@ -33,12 +33,14 @@ void balancing_print(void)
 	Serial.print("\tTgtAngle "); Serial.print(fTgtAngle, 2);
 	Serial.print("\tCurAngle "); Serial.print(get_pitch_angle(), 2);
 	Serial.print("\tPWM val "); Serial.print(fPwm, 2);
-	Serial.print("\t"); Serial.print(motor_left.GetModifiedPwm());
-	Serial.print("\t"); Serial.print(motor_right.GetModifiedPwm());
+	Serial.print("\t"); Serial.print(motor_left.GetCurPwm());
+	Serial.print("\t"); Serial.print(motor_right.GetCurPwm());
 	//Serial.print("\tAccIntr "); Serial.print(motor_left.GetAccIntr());
 	//Serial.print(" "); Serial.print(motor_right.GetAccIntr());
 	Serial.print("\tRPM\t"); Serial.print(motor_left.GetCurRpm());
 	Serial.print("\t"); Serial.print(motor_right.GetCurRpm());
+	Serial.print("\tCurrent\t"); Serial.print(motor_left.GetCurrent());
+	Serial.print("\t"); Serial.print(motor_right.GetCurrent());
 	Serial.println("");
 }
 

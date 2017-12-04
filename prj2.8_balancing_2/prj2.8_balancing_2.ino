@@ -55,7 +55,7 @@ void loop()
     check_ir();
   }
   if ((loop_ms % INTERVAL_BALANCING) == 0) {
-    balancing_loop();
+    //balancing_loop();
   }
 
   /*
