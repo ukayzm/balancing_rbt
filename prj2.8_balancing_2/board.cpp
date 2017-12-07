@@ -146,8 +146,8 @@ void setup_board()
 	motor_left.SetPIN(M0_PWM_PIN, M0_CTRL0_PIN, M0_CTRL1_PIN, M0_CURRENT_PIN);
 	motor_right.SetPIN(M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1_PIN, M1_CURRENT_PIN);
 
-	//motor_left.SetCharacteristics(INITIAL_PWM_M0, MIN_PWM_M0, MIN_RPM_M0);
-	//motor_right.SetCharacteristics(INITIAL_PWM_M1, MIN_PWM_M1, MIN_RPM_M1);
+	motor_left.SetCharacteristics(INITIAL_PWM_M0, MIN_PWM_M0, MIN_RPM_M0);
+	motor_right.SetCharacteristics(INITIAL_PWM_M1, MIN_PWM_M1, MIN_RPM_M1);
 
 	Serial.println("Power supply: 3S LiPo Battery");
 	Serial.println("Motor driver: VNH5019");
@@ -163,7 +163,9 @@ void setup_board()
 	setDivisorTimer1(1);
 
 	setup_IR();
+	Serial.println("IR done.");
 
 	mpu6050_setup();
+	Serial.println("mpu6050 done.");
 }
 

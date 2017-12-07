@@ -20,7 +20,7 @@ extern void balancing_dec_angle_ki(void);
 extern void balancing_inc_angle_kd(void);
 extern void balancing_dec_angle_kd(void);
 
-#define LOOP_MS     1
+#define LOOP_MS     4
 unsigned long loop_timer;
 
 void setup() {
@@ -40,32 +40,16 @@ void setup() {
   loop_timer += LOOP_MS * 1000;
 }
 
-unsigned long prev_total_count_m3, prev_total_count_m4;
-
 void loop()
 {
-  static int loop_ms = 0;
+  loop_timer = micros() + LOOP_MS * 1000;
 
-  loop_ms += LOOP_MS;
+  mpu6050_loop();
+  check_ir();
+  balancing_loop();
 
-  if ((loop_ms % INTERVAL_MPU6050) == 1) {
-    mpu6050_loop();
-  }
-  if ((loop_ms % INTERVAL_IR) == 0) {
-    check_ir();
-  }
-  if ((loop_ms % INTERVAL_BALANCING) == 0) {
-    //balancing_loop();
-  }
-
-  /*
-   * The angle calculations are tuned for a loop time of LOOP_MS milliseconds.
-   * To make sure every loop is exactly LOOP_MS milliseconds a wait loop
-   * is created by setting the loop_timer variable to +4000 microseconds
-   * every loop.
-   */
+  /*Set the loop_timer variable at the next end loop time */
   while (loop_timer > micros());
-  loop_timer += LOOP_MS * 1000;
 }
 
 void check_ir()

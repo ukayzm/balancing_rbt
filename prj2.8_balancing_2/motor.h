@@ -19,8 +19,13 @@ extern void init_motors(void);
 #define MIN_PWM_M1	 5
 
 /* speed (mm/sec) at the minimum PWM */
+#if 0
 #define MIN_RPM_M0	42
 #define MIN_RPM_M1	42
+#else
+#define MIN_RPM_M0	1
+#define MIN_RPM_M1	1
+#endif
 
 #define NUM_INTR_SAVE	3
 

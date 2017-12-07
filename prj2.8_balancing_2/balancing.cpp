@@ -9,7 +9,7 @@
 #define SPEED_KI		0.0
 #define SPEED_KD		0.0
 
-#define ANGLE_KP	1.0
+#define ANGLE_KP	15.0
 #define ANGLE_KI	0.0
 #define ANGLE_KD	0.0
 
@@ -22,35 +22,40 @@ PID gPidAngle(&fInAngle, &fPwm, &fTgtAngle, ANGLE_KP, ANGLE_KI, ANGLE_KD, DIRECT
 
 void balancing_print(void)
 {
-	Serial.print(millis()); Serial.print(" msec");
-	Serial.print("\tKspeed "); Serial.print(gPidSpeed.GetKp(), 2);
-	Serial.print(" "); Serial.print(gPidSpeed.GetKi(), 2);
-	Serial.print(" "); Serial.print(gPidSpeed.GetKd(), 2);
-	Serial.print("\tKangle "); Serial.print(gPidAngle.GetKp(), 2);
-	Serial.print(" "); Serial.print(gPidAngle.GetKi(), 2);
-	Serial.print(" "); Serial.print(gPidAngle.GetKd(), 2);
-	Serial.print("\tTgtSpeed "); Serial.print(fTgtSpeed, 2);
-	Serial.print("\tTgtAngle "); Serial.print(fTgtAngle, 2);
-	Serial.print("\tCurAngle "); Serial.print(get_pitch_angle(), 2);
-	Serial.print("\tPWM val "); Serial.print(fPwm, 2);
-	Serial.print("\t"); Serial.print(motor_left.GetCurPwm());
-	Serial.print("\t"); Serial.print(motor_right.GetCurPwm());
-	//Serial.print("\tAccIntr "); Serial.print(motor_left.GetAccIntr());
-	//Serial.print(" "); Serial.print(motor_right.GetAccIntr());
-	Serial.print("\tRPM\t"); Serial.print(motor_left.GetCurRpm());
-	Serial.print("\t"); Serial.print(motor_right.GetCurRpm());
-	Serial.print("\tCurrent\t"); Serial.print(motor_left.GetCurrent());
-	Serial.print("\t"); Serial.print(motor_right.GetCurrent());
+	static unsigned long last_ms;
+	unsigned long cur_ms = millis();
+	Serial.print(cur_ms - last_ms);
+#if 1
+	Serial.print(","); Serial.print(fTgtSpeed, 2);
+	Serial.print(","); Serial.print(fTgtAngle, 2);
+	Serial.print(","); Serial.print(get_pitch_angle(), 2);
+	Serial.print(","); Serial.print(fPwm, 0);
+	Serial.print(","); Serial.print(motor_left.GetCurPwm());
+	Serial.print(","); Serial.print(motor_right.GetCurPwm());
+	//Serial.print(","); Serial.print(motor_left.GetAccIntr());
+	//Serial.print(","); Serial.print(motor_right.GetAccIntr());
+	Serial.print(","); Serial.print(motor_left.GetCurRpm());
+	Serial.print(","); Serial.print(motor_right.GetCurRpm());
+	Serial.print(","); Serial.print(motor_left.GetCurrent());
+	Serial.print(","); Serial.print(motor_right.GetCurrent());
+	Serial.print(","); Serial.print(gPidSpeed.GetKp(), 1);
+	Serial.print(","); Serial.print(gPidSpeed.GetKi(), 1);
+	Serial.print(","); Serial.print(gPidSpeed.GetKd(), 1);
+	Serial.print(","); Serial.print(gPidAngle.GetKp(), 1);
+	Serial.print(","); Serial.print(gPidAngle.GetKi(), 1);
+	Serial.print(","); Serial.print(gPidAngle.GetKd(), 1);
+#endif
 	Serial.println("");
+	last_ms = cur_ms;
 }
 
 void balancing_setup()
 {
-	gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
+	//gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
 	gPidSpeed.SetMode(AUTOMATIC);
 	gPidSpeed.SetOutputLimits(-10, 10);
 
-	gPidAngle.SetSampleTime(INTERVAL_BALANCING);
+	//gPidAngle.SetSampleTime(INTERVAL_BALANCING);
 	gPidAngle.SetMode(AUTOMATIC);
 	gPidAngle.SetOutputLimits(-255, 255);
 }
@@ -97,11 +102,12 @@ void balancing_loop()
 
 	compute_pid(angle_pitch);
 
-	fPwm = fPwm * abs(fPwm);
+	//fPwm = fPwm * abs(fPwm);
 
 	nPwmL = fPwm + nDir;
 	nPwmR = fPwm - nDir;
 
+#if 1
 #if 1
 	if (nPwmL == 0) {
 		motor_left.SetPwm(0);
@@ -134,6 +140,7 @@ void balancing_loop()
 	} else {
 		motor_right.SetPwm(nPwmR - INITIAL_PWM_M1);
 	}
+#endif
 #endif
 
 	balancing_print();

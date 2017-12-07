@@ -1,5 +1,7 @@
 # Created by https://www.gitignore.io/api/c++,python,jupyternotebook
 
+.*.swp
+
 ### C++ ###
 # Prerequisites
 *.d
