@@ -41,6 +41,7 @@ uint8_t i2cData[14]; // Buffer for I2C data
 
 void mpu6050_setup() {
   Wire.begin();
+#if 1
   TWBR = ((F_CPU / 400000L) - 16) / 2; // Set I2C frequency to 400kHz
 
   i2cData[0] = 7; // Set the sample rate to 1000Hz - 8kHz/(7+1) = 1000Hz
@@ -48,6 +49,7 @@ void mpu6050_setup() {
   i2cData[2] = 0x00; // Set Gyro Full Scale Range to ±250deg/s
   i2cData[3] = 0x00; // Set Accelerometer Full Scale Range to ±2g
   while (i2cWrite(0x19, i2cData, 4, false)); // Write to all four registers at once
+#endif
   while (i2cWrite(0x6B, 0x01, true)); // PLL with X axis gyroscope reference and disable sleep mode
 
   while (i2cRead(0x75, i2cData, 1));
@@ -99,7 +101,10 @@ void mpu6050_setup() {
    */
 void mpu6050_loop() {
   /* Update all the values */
-  while (i2cRead(0x3B, i2cData, 14));
+  if (i2cRead(0x3B, i2cData, 14)) {
+	  Serial.println("mpu6050 out");
+	  return;
+  }
   accX = ((i2cData[0] << 8) | i2cData[1]);
   accY = ((i2cData[2] << 8) | i2cData[3]);
   accZ = ((i2cData[4] << 8) | i2cData[5]);
@@ -207,7 +212,7 @@ void mpu6050_loop() {
 
 float get_pitch_angle(void)
 {
-	/* in this robot, X is pitch. */
-	return -kalAngleX;
+	/* in this robot, Y is pitch. */
+	return kalAngleY;
 }
 

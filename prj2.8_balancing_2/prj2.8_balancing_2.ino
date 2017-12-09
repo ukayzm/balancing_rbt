@@ -20,7 +20,6 @@ extern void balancing_dec_angle_ki(void);
 extern void balancing_inc_angle_kd(void);
 extern void balancing_dec_angle_kd(void);
 
-#define LOOP_MS     4
 unsigned long loop_timer;
 
 void setup() {
@@ -42,14 +41,14 @@ void setup() {
 
 void loop()
 {
-  loop_timer = micros() + LOOP_MS * 1000;
-
+  balancing_loop();
   mpu6050_loop();
   check_ir();
-  balancing_loop();
 
   /*Set the loop_timer variable at the next end loop time */
+  //Serial.println(loop_timer - micros());
   while (loop_timer > micros());
+  loop_timer = micros() + LOOP_MS * 1000;
 }
 
 void check_ir()

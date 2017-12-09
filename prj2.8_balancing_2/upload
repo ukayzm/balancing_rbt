@@ -1,0 +1,2 @@
+#
+~/work/arduino-1.8.4/arduino --upload prj2.8_balancing_2.ino --port /dev/ttyACM0

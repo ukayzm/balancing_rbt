@@ -9,9 +9,9 @@
 #define SPEED_KI		0.0
 #define SPEED_KD		0.0
 
-#define ANGLE_KP	15.0
+#define ANGLE_KP	25.0
 #define ANGLE_KI	0.0
-#define ANGLE_KD	0.0
+#define ANGLE_KD	0.1
 
 double fTgtSpeed, fInSpeed;
 double fTgtAngle, fInAngle, fPwm;
@@ -20,42 +20,49 @@ int32_t nDir;
 PID gPidSpeed(&fInSpeed, &fTgtAngle, &fTgtSpeed, SPEED_KP, SPEED_KI, SPEED_KD, REVERSE);
 PID gPidAngle(&fInAngle, &fPwm, &fTgtAngle, ANGLE_KP, ANGLE_KI, ANGLE_KD, DIRECT);
 
+void balancing_print_k(void)
+{
+	Serial.print("K,"); Serial.print(fTgtSpeed, 2);
+	Serial.print(",\t"); Serial.print(fTgtAngle, 2);
+	Serial.print(",\t"); Serial.print(gPidSpeed.GetKp(), 1);
+	Serial.print(",\t"); Serial.print(gPidSpeed.GetKi(), 1);
+	Serial.print(",\t"); Serial.print(gPidSpeed.GetKd(), 1);
+	Serial.print(",\t"); Serial.print(gPidAngle.GetKp(), 1);
+	Serial.print(",\t"); Serial.print(gPidAngle.GetKi(), 1);
+	Serial.print(",\t"); Serial.print(gPidAngle.GetKd(), 1);
+	Serial.println("");
+}
+
 void balancing_print(void)
 {
 	static unsigned long last_ms;
 	unsigned long cur_ms = millis();
-	Serial.print(cur_ms - last_ms);
-#if 1
-	Serial.print(","); Serial.print(fTgtSpeed, 2);
-	Serial.print(","); Serial.print(fTgtAngle, 2);
-	Serial.print(","); Serial.print(get_pitch_angle(), 2);
-	Serial.print(","); Serial.print(fPwm, 0);
-	Serial.print(","); Serial.print(motor_left.GetCurPwm());
-	Serial.print(","); Serial.print(motor_right.GetCurPwm());
-	//Serial.print(","); Serial.print(motor_left.GetAccIntr());
-	//Serial.print(","); Serial.print(motor_right.GetAccIntr());
-	Serial.print(","); Serial.print(motor_left.GetCurRpm());
-	Serial.print(","); Serial.print(motor_right.GetCurRpm());
-	Serial.print(","); Serial.print(motor_left.GetCurrent());
-	Serial.print(","); Serial.print(motor_right.GetCurrent());
-	Serial.print(","); Serial.print(gPidSpeed.GetKp(), 1);
-	Serial.print(","); Serial.print(gPidSpeed.GetKi(), 1);
-	Serial.print(","); Serial.print(gPidSpeed.GetKd(), 1);
-	Serial.print(","); Serial.print(gPidAngle.GetKp(), 1);
-	Serial.print(","); Serial.print(gPidAngle.GetKi(), 1);
-	Serial.print(","); Serial.print(gPidAngle.GetKd(), 1);
-#endif
+
+	Serial.print("P,"); Serial.print(cur_ms - last_ms);
+	Serial.print(",\t"); Serial.print(get_pitch_angle(), 2);
+	Serial.print(",\t"); Serial.print(fPwm, 0);
+	Serial.print(",\t"); Serial.print(motor_left.GetCurPwm());
+	Serial.print(",\t"); Serial.print(motor_right.GetCurPwm());
+	//Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
+	//Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
+	Serial.print(",\t"); Serial.print(motor_left.GetCurRpm());
+	Serial.print(",\t"); Serial.print(motor_right.GetCurRpm());
+	//Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
+	//Serial.print(",\t"); Serial.print(motor_right.GetCurrent());
 	Serial.println("");
+	if (last_ms / 1000 != cur_ms / 1000) {
+		balancing_print_k();
+	}
 	last_ms = cur_ms;
 }
 
 void balancing_setup()
 {
-	//gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
+	gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
 	gPidSpeed.SetMode(AUTOMATIC);
 	gPidSpeed.SetOutputLimits(-10, 10);
 
-	//gPidAngle.SetSampleTime(INTERVAL_BALANCING);
+	gPidAngle.SetSampleTime(INTERVAL_BALANCING);
 	gPidAngle.SetMode(AUTOMATIC);
 	gPidAngle.SetOutputLimits(-255, 255);
 }
@@ -76,6 +83,9 @@ void compute_pid(float angle_pitch)
 	fInSpeed = count_l + count_r;	/* current speed * a */
 	gPidSpeed.Compute();
 
+#if 0
+	fTgtAngle = 0;
+#endif
 	fInAngle = angle_pitch;
 	gPidAngle.Compute();
 }
@@ -155,7 +165,7 @@ void balancing_inc_kp(void)
 	Kd = gPidSpeed.GetKd();
 	Kp += 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_kp(void)
@@ -167,7 +177,7 @@ void balancing_dec_kp(void)
 	Kd = gPidSpeed.GetKd();
 	Kp -= 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_ki(void)
@@ -179,7 +189,7 @@ void balancing_inc_ki(void)
 	Kd = gPidSpeed.GetKd();
 	Ki += 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_ki(void)
@@ -191,7 +201,7 @@ void balancing_dec_ki(void)
 	Kd = gPidSpeed.GetKd();
 	Ki -= 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_kd(void)
@@ -203,7 +213,7 @@ void balancing_inc_kd(void)
 	Kd = gPidSpeed.GetKd();
 	Kd += 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_kd(void)
@@ -215,7 +225,7 @@ void balancing_dec_kd(void)
 	Kd = gPidSpeed.GetKd();
 	Kd -= 0.01;
 	gPidSpeed.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_angle_kp(void)
@@ -225,9 +235,9 @@ void balancing_inc_angle_kp(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kp += 0.1;
+	Kp += 1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_angle_kp(void)
@@ -237,9 +247,9 @@ void balancing_dec_angle_kp(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kp -= 0.1;
+	Kp -= 1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_angle_ki(void)
@@ -249,9 +259,9 @@ void balancing_inc_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki += 0.01;
+	Ki += 1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_angle_ki(void)
@@ -261,9 +271,9 @@ void balancing_dec_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki -= 0.01;
+	Ki -= 1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_angle_kd(void)
@@ -273,9 +283,9 @@ void balancing_inc_angle_kd(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kd += 0.01;
+	Kd += 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_angle_kd(void)
@@ -285,39 +295,39 @@ void balancing_dec_angle_kd(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Kd -= 0.01;
+	Kd -= 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_tgt(void)
 {
 	fTgtSpeed += 1;
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_tgt(void)
 {
 	fTgtSpeed -= 1;
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_inc_dir(void)
 {
 	nDir += 1;
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_dec_dir(void)
 {
 	nDir -= 1;
-	balancing_print();
+	balancing_print_k();
 }
 
 void balancing_reset_tgtdir(void)
 {
 	nDir = 0;
 	fTgtSpeed = 0;
-	balancing_print();
+	balancing_print_k();
 }
 
