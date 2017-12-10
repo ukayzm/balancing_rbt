@@ -38,21 +38,21 @@ void balancing_print(void)
 	static unsigned long last_ms;
 	unsigned long cur_ms = millis();
 
+	if (last_ms / 1000 != cur_ms / 1000) {
+		balancing_print_k();
+	}
 	Serial.print("P,"); Serial.print(cur_ms - last_ms);
 	Serial.print(",\t"); Serial.print(get_pitch_angle(), 2);
 	Serial.print(",\t"); Serial.print(fPwm, 0);
 	Serial.print(",\t"); Serial.print(motor_left.GetCurPwm());
 	Serial.print(",\t"); Serial.print(motor_right.GetCurPwm());
-	//Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
-	//Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
+	Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
+	Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
 	Serial.print(",\t"); Serial.print(motor_left.GetCurRpm());
 	Serial.print(",\t"); Serial.print(motor_right.GetCurRpm());
-	//Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
-	//Serial.print(",\t"); Serial.print(motor_right.GetCurrent());
+	Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
+	Serial.print(",\t"); Serial.print(motor_right.GetCurrent());
 	Serial.println("");
-	if (last_ms / 1000 != cur_ms / 1000) {
-		balancing_print_k();
-	}
 	last_ms = cur_ms;
 }
 
@@ -119,14 +119,15 @@ void balancing_loop()
 
 #if 1
 #if 1
-	if (nPwmL == 0) {
+#define SHRINK_TOO_LOW_PWM	5
+	if (abs(nPwmL) <= SHRINK_TOO_LOW_PWM) {
 		motor_left.SetPwm(0);
 	} else if (nPwmL > 0) {
 		motor_left.SetPwm(nPwmL);
 	} else {
 		motor_left.SetPwm(nPwmL);
 	}
-	if (nPwmR == 0) {
+	if (abs(nPwmR) <= SHRINK_TOO_LOW_PWM) {
 		motor_right.SetPwm(0);
 	} else if (nPwmR > 0) {
 		motor_right.SetPwm(nPwmR);
