@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import time
 
 numX = 600
-TgtSpeed = 0
+TgtRpm = 0
 TgtAngle = 0
 Kp_angle = 0
 Ki_angle = 0
@@ -14,6 +14,8 @@ Kd_angle = 0
 Kp_speed = 0
 Ki_speed = 0
 Kd_speed = 0
+
+MaxAngle = 20
 
 X = np.linspace(-numX, 0, numX)
 
@@ -28,12 +30,16 @@ pwm.fill(100)
 tgtRpm = np.zeros(numX)
 curRpm = np.zeros(numX)
 
-f, ax = plt.subplots(3, sharex=True, figsize=(12,10), dpi=80)
-#plt.ion()
+# Current
+currentL = np.zeros(numX)
+currentR = np.zeros(numX)
 
-curAngleY, = ax[0].plot(X, curAngle, 'b-')
-tgtAngleY, = ax[0].plot(X, tgtAngle, 'r')
-ax[0].set_ylim(-180, 180)
+plt.ion()
+fig, ax = plt.subplots(3, sharex=True, figsize=(12,10), dpi=80)
+
+curAngleY, = ax[0].plot(X, curAngle, 'r-')
+tgtAngleY, = ax[0].plot(X, tgtAngle, 'g')
+ax[0].set_ylim(-MaxAngle - 1, MaxAngle + 1)
 ax[0].set_ylabel('Pitch angle (degrees)')
 
 ax20 = ax[0].twinx()
@@ -46,17 +52,24 @@ pwmY2, = ax[1].plot(X, pwm, 'b.')
 ax[1].set_ylabel('PWM')
 
 ax21 = ax[1].twinx()
-ax21.plot(X, curRpm, 'b-')
-ax21.plot(X, tgtRpm, 'r')
+curRpmY, = ax21.plot(X, curRpm, 'b-')
+tgtRpmY, = ax21.plot(X, tgtRpm, 'r')
 ax21.set_ylim(-300, 300)
 ax21.set_ylabel('RPM')
 
+currentLY, = ax[2].plot(X, currentL, 'r-')
+currentRY, = ax[2].plot(X, currentL, 'b-')
+ax[2].set_ylim(-0.0001, 5000)
+ax[2].set_ylabel('Current (mA)')
+
 plt.tight_layout()
+
+fig.show()
 
 def plot_k(k):
     kk = k[1:]
     ff = [float(i) for i in kk]
-    TgtSpeed = ff[0]
+    TgtRpm = ff[0]
     TgtAngle = ff[1]
     Kp_speed = ff[2]
     Ki_speed = ff[3]
@@ -83,18 +96,32 @@ while True:
         ff = [float(i) for i in pp]
         print(ff)
         curAngle = np.roll(curAngle, -1)
-        curAngle[-1] = ff[1]
+        curAngle[-1] = np.clip(ff[1], -MaxAngle, MaxAngle)
         tgtAngle = np.roll(tgtAngle, -1)
-        tgtAngle[-1] = TgtAngle
+        tgtAngle[-1] = np.clip(TgtAngle, -MaxAngle, MaxAngle)
         pwm = np.roll(pwm, -1)
         pwm[-1] = ff[2]
+        tgtRpm = np.roll(tgtRpm, -1)
+        tgtRpm[-1] = TgtRpm;
+        curRpm = np.roll(curRpm, -1)
+        curRpm[-1] = (ff[7] + ff[8]) / 2
         cur_sec = int(time.time())
+        currentL = np.roll(currentL, -1)
+        currentL[-1] = ff[9];
+        currentR = np.roll(currentR, -1)
+        currentR[-1] = ff[10];
         if (last_draw_sec != cur_sec):
             curAngleY.set_ydata(curAngle)
             tgtAngleY.set_ydata(tgtAngle)
             pwmY1.set_ydata(pwm)
+            pwmY2.set_ydata(pwm)
+            tgtRpmY.set_ydata(tgtRpm)
+            curRpmY.set_ydata(curRpm)
+            currentLY.set_ydata(currentL)
+            currentRY.set_ydata(currentR)
             plt.draw()
-            plt.pause(0.001)
+            #plt.pause(0.001)
+            fig.canvas.flush_events()
             last_draw_sec = cur_sec
     elif (g[0] is "K" and len(g) is 9):
         plot_k(g)
