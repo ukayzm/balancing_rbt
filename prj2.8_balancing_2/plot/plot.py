@@ -96,7 +96,7 @@ while True:
         ff = [float(i) for i in pp]
         print(ff)
         curAngle = np.roll(curAngle, -1)
-        curAngle[-1] = np.clip(ff[1], -MaxAngle, MaxAngle)
+        curAngle[-1] = np.clip(-ff[1], -MaxAngle, MaxAngle)
         tgtAngle = np.roll(tgtAngle, -1)
         tgtAngle[-1] = np.clip(TgtAngle, -MaxAngle, MaxAngle)
         pwm = np.roll(pwm, -1)
@@ -105,7 +105,7 @@ while True:
         tgtRpm[-1] = TgtRpm;
         curRpm = np.roll(curRpm, -1)
         curRpm[-1] = (ff[7] + ff[8]) / 2
-        cur_sec = int(time.time())
+        cur_sec = int(time.time() * 10)
         currentL = np.roll(currentL, -1)
         currentL[-1] = ff[9];
         currentR = np.roll(currentR, -1)

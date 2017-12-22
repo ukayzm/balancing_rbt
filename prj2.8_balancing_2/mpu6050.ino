@@ -87,6 +87,7 @@ void mpu6050_setup() {
   timer = micros();
 }
 
+int mpu6050_out;
   /*
    * output of mpu6050_loop():
    *
@@ -103,6 +104,7 @@ void mpu6050_loop() {
   /* Update all the values */
   if (i2cRead(0x3B, i2cData, 14)) {
 	  Serial.println("mpu6050 out");
+	  mpu6050_out = 1;
 	  return;
   }
   accX = ((i2cData[0] << 8) | i2cData[1]);
@@ -213,6 +215,6 @@ void mpu6050_loop() {
 float get_pitch_angle(void)
 {
 	/* in this robot, Y is pitch. */
-	return kalAngleY;
+	return -kalAngleY;
 }
 

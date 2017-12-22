@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <PID_v1.h>
+#include "pid_v2.h"
 #include "board.h"
 #include "mpu6050.h"
 #include "motor.h"
@@ -9,9 +9,9 @@
 #define SPEED_KI		0.0
 #define SPEED_KD		0.0
 
-#define ANGLE_KP	25.0
+#define ANGLE_KP	50.0
 #define ANGLE_KI	0.0
-#define ANGLE_KD	0.1
+#define ANGLE_KD	0.0
 
 double fTgtSpeed, fInSpeed;
 double fTgtAngle, fInAngle, fPwm;
@@ -46,8 +46,8 @@ void balancing_print(void)
 	Serial.print(",\t"); Serial.print(fPwm, 0);
 	Serial.print(",\t"); Serial.print(motor_left.GetCurPwm());
 	Serial.print(",\t"); Serial.print(motor_right.GetCurPwm());
-	Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
-	Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
+	//Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
+	//Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
 	Serial.print(",\t"); Serial.print(motor_left.GetCurRpm());
 	Serial.print(",\t"); Serial.print(motor_right.GetCurRpm());
 	Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
@@ -90,10 +90,67 @@ void compute_pid(float angle_pitch)
 	gPidAngle.Compute();
 }
 
+float last_error = 0;
+float errSum = 0;
+unsigned long lastTime;
+#define GUARD_GAIN	100
+
+void compute_pid_Kas(float angle_pitch)
+{
+	float Kp = gPidAngle.GetKp();
+	float Ki = gPidAngle.GetKi();
+	float Kd = gPidAngle.GetKd();
+	unsigned long now = millis();
+	unsigned long timeChange = (now - lastTime);
+	float error;
+	float pTerm, iTerm, dTerm;
+#if 0
+	int count_l, count_r;
+	int cur_count;
+	float pTerm_Wheel, dTerm_Wheel;
+	float Kp_wheel = gPidSpeed.GetKp();
+	float Kd_wheel = gPidSpeed.GetKd();
+
+	count_l = motor_left.GetAccIntr();
+	motor_left.ResetAccIntr();
+	count_r = motor_right.GetAccIntr();
+	motor_right.ResetAccIntr();
+	cur_count = count_l + count_r;
+
+	pTerm_Wheel = Kp_Wheel * cur_count;           //  -(Kxp/100) * count;
+	dTerm_Wheel = Kd_Wheel * (cur_count - last_count);
+	last_count = cur_count;
+#else
+	fTgtAngle = 1.0;
+#endif
+	error = fTgtAngle - angle_pitch;
+	float dErr = (error - last_error) / timeChange;
+
+	errSum += error * timeChange;
+	pTerm = Kp * error;
+	iTerm = Ki * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
+	dTerm = Kd * dErr;
+
+	last_error = error;
+	lastTime = now;
+
+	fPwm = constrain((pTerm + iTerm + dTerm), -255, 255);
+}
+
+extern int mpu6050_out;
+
 void balancing_loop()
 {
 	float angle_pitch;
 	int nPwmL, nPwmR;
+
+	if (mpu6050_out) {
+		motor_left.SetPwm(0);
+		motor_right.SetPwm(0);
+		motor_left.Update();
+		motor_right.Update();
+		return;
+	}
 
 	motor_left.Update();
 	motor_right.Update();
@@ -110,7 +167,8 @@ void balancing_loop()
 		return;
 	}
 
-	compute_pid(angle_pitch);
+	//compute_pid(angle_pitch);
+	compute_pid_Kas(angle_pitch);
 
 	//fPwm = fPwm * abs(fPwm);
 

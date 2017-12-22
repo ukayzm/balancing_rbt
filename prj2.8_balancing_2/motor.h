@@ -27,7 +27,7 @@ extern void init_motors(void);
 #define MIN_RPM_M1	1
 #endif
 
-#define NUM_INTR_SAVE	3
+#define NUM_INTR_SAVE	1
 
 class Motor
 {
