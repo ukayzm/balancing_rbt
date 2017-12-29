@@ -1,4 +1,5 @@
 #include "board.h"
+#include "mpu6050.h"
 
 extern void balancing_setup(void);
 extern void balancing_loop(void);

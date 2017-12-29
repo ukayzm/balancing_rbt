@@ -9,9 +9,28 @@
 #define SPEED_KI		0.0
 #define SPEED_KD		0.0
 
-#define ANGLE_KP	50.0
-#define ANGLE_KI	0.0
+//#define ZIEGLER_NICHOLS_P
+//#define ZIEGLER_NICHOLS_PI
+//#define ZIEGLER_NICHOLS_PID
+#define KU			70.0
+#define TU			(1.0/12.0)
+#if defined(ZIEGLER_NICHOLS_P)
+#define ANGLE_KP	(0.5*KU)
+#define ANGLE_KI	0
+#define ANGLE_KD	0
+#elif defined(ZIEGLER_NICHOLS_PI)
+#define ANGLE_KP	(0.45*KU)
+#define ANGLE_KI	(1.2*ANGLE_KP/TU)
+#define ANGLE_KD	0
+#elif defined(ZIEGLER_NICHOLS_PID)
+#define ANGLE_KP	(0.60*KU)
+#define ANGLE_KI	(2.0*ANGLE_KP/TU)
+#define ANGLE_KD	(KP*TU/8.0)
+#else
+#define ANGLE_KP	70.0
+#define ANGLE_KI	5.0
 #define ANGLE_KD	0.0
+#endif
 
 double fTgtSpeed, fInSpeed;
 double fTgtAngle, fInAngle, fPwm;
@@ -101,7 +120,7 @@ void compute_pid_Kas(float angle_pitch)
 	float Ki = gPidAngle.GetKi();
 	float Kd = gPidAngle.GetKd();
 	unsigned long now = millis();
-	unsigned long timeChange = (now - lastTime);
+	unsigned long dt = (now - lastTime);
 	float error;
 	float pTerm, iTerm, dTerm;
 #if 0
@@ -121,12 +140,12 @@ void compute_pid_Kas(float angle_pitch)
 	dTerm_Wheel = Kd_Wheel * (cur_count - last_count);
 	last_count = cur_count;
 #else
-	fTgtAngle = 1.0;
+	fTgtAngle = 0.0;
 #endif
 	error = fTgtAngle - angle_pitch;
-	float dErr = (error - last_error) / timeChange;
+	float dErr = (error - last_error) / dt;
 
-	errSum += error * timeChange;
+	errSum += error * dt;
 	pTerm = Kp * error;
 	iTerm = Ki * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
 	dTerm = Kd * dErr;
@@ -137,20 +156,40 @@ void compute_pid_Kas(float angle_pitch)
 	fPwm = constrain((pTerm + iTerm + dTerm), -255, 255);
 }
 
-extern int mpu6050_out;
+float last_input;
+
+void compute_pid_adr(float angle_pitch)
+{
+	float Kp = gPidAngle.GetKp();
+	float Ki = gPidAngle.GetKi();
+	float Kd = gPidAngle.GetKd();
+	unsigned long now = millis();
+	unsigned long dt = (now - lastTime);
+	float error;
+	float pTerm, iTerm, dTerm;
+
+	fTgtAngle = 0.0;
+
+	error = fTgtAngle - angle_pitch;
+
+	pTerm = Kp * error;
+	errSum += Ki * error * dt;
+	iTerm = constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
+	float dInput = angle_pitch - last_input;
+	dTerm = -(Kd * dInput / dt);
+
+	last_input = angle_pitch;
+	last_error = error;
+	lastTime = now;
+
+	fPwm = constrain((pTerm + iTerm + dTerm), -255, 255);
+}
+
 
 void balancing_loop()
 {
 	float angle_pitch;
 	int nPwmL, nPwmR;
-
-	if (mpu6050_out) {
-		motor_left.SetPwm(0);
-		motor_right.SetPwm(0);
-		motor_left.Update();
-		motor_right.Update();
-		return;
-	}
 
 	motor_left.Update();
 	motor_right.Update();
@@ -168,7 +207,8 @@ void balancing_loop()
 	}
 
 	//compute_pid(angle_pitch);
-	compute_pid_Kas(angle_pitch);
+	//compute_pid_Kas(angle_pitch);
+	compute_pid_adr(angle_pitch);
 
 	//fPwm = fPwm * abs(fPwm);
 
@@ -318,7 +358,7 @@ void balancing_inc_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki += 1;
+	Ki += 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print_k();
 }
@@ -330,7 +370,7 @@ void balancing_dec_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki -= 1;
+	Ki -= 0.1;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print_k();
 }
