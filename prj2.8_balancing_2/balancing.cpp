@@ -27,13 +27,16 @@
 #define ANGLE_KI	(2.0*ANGLE_KP/TU)
 #define ANGLE_KD	(KP*TU/8.0)
 #else
-#define ANGLE_KP	70.0
-#define ANGLE_KI	5.0
+#define ANGLE_KP	30.0
+//#define ANGLE_KI	40.0
+#define ANGLE_KI	0.0
 #define ANGLE_KD	0.0
 #endif
 
 double fTgtSpeed, fInSpeed;
 double fTgtAngle, fInAngle, fPwm;
+double pTerm, iTerm, dTerm;
+float errSum = 0;
 int32_t nDir;
 
 PID gPidSpeed(&fInSpeed, &fTgtAngle, &fTgtSpeed, SPEED_KP, SPEED_KI, SPEED_KD, REVERSE);
@@ -62,15 +65,17 @@ void balancing_print(void)
 	}
 	Serial.print("P,"); Serial.print(cur_ms - last_ms);
 	Serial.print(",\t"); Serial.print(get_pitch_angle(), 2);
+	Serial.print(",\t"); Serial.print(pTerm, 2);
+	Serial.print(",\t"); Serial.print(errSum, 2);
+	Serial.print(",\t"); Serial.print(iTerm, 2);
+	Serial.print(",\t"); Serial.print(dTerm, 2);
 	Serial.print(",\t"); Serial.print(fPwm, 0);
-	Serial.print(",\t"); Serial.print(motor_left.GetCurPwm());
-	Serial.print(",\t"); Serial.print(motor_right.GetCurPwm());
-	//Serial.print(",\t"); Serial.print(motor_left.GetAccIntr());
-	//Serial.print(",\t"); Serial.print(motor_right.GetAccIntr());
-	Serial.print(",\t"); Serial.print(motor_left.GetCurRpm());
-	Serial.print(",\t"); Serial.print(motor_right.GetCurRpm());
-	Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
-	Serial.print(",\t"); Serial.print(motor_right.GetCurrent());
+	//Serial.print(",\t"); Serial.print(motor_left.GetCurPwm());
+	//Serial.print(",\t"); Serial.print(motor_right.GetCurPwm());
+	//Serial.print(",\t"); Serial.print(motor_left.GetCurRpm());
+	//Serial.print(",\t"); Serial.print(motor_right.GetCurRpm());
+	//Serial.print(",\t"); Serial.print(motor_left.GetCurrent());
+	//Serial.print(",\t"); Serial.print(motor_right.GetCurrent());
 	Serial.println("");
 	last_ms = cur_ms;
 }
@@ -86,35 +91,40 @@ void balancing_setup()
 	gPidAngle.SetOutputLimits(-255, 255);
 }
 
-/*
- * PID control inspired by https://www.jjrobots.com/projects-2/b-robot/
- */
-void compute_pid(float angle_pitch)
+float last_error = 0;
+unsigned long lastTime;
+#define GUARD_GAIN	30
+
+float last_input;
+
+float compute_pid_adr(float angle_pitch)
 {
-	int32_t count_l, count_r;
-	int32_t cur_count;
+	float Kp = gPidAngle.GetKp();
+	float Ki = gPidAngle.GetKi();
+	float Kd = gPidAngle.GetKd();
+	unsigned long now = millis();
+	float dt = (float)(now - lastTime) / 1000.0;
+	float error;
 
-	count_l = motor_left.GetAccIntr();
-	motor_left.ResetAccIntr();
-	count_r = motor_right.GetAccIntr();
-	motor_right.ResetAccIntr();
+	error = fTgtAngle - angle_pitch;
 
-	fInSpeed = count_l + count_r;	/* current speed * a */
-	gPidSpeed.Compute();
+	pTerm = Kp * error;
 
-#if 0
-	fTgtAngle = 0;
-#endif
-	fInAngle = angle_pitch;
-	gPidAngle.Compute();
+	errSum += Ki * error * dt;
+	iTerm = constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
+
+	float dInput = angle_pitch - last_input;
+	dTerm = Kd * (-dInput / dt);
+
+	last_input = angle_pitch;
+	last_error = error;
+	lastTime = now;
+
+	return constrain((pTerm + iTerm + dTerm), -255, 255);
 }
 
-float last_error = 0;
-float errSum = 0;
-unsigned long lastTime;
-#define GUARD_GAIN	100
 
-void compute_pid_Kas(float angle_pitch)
+float compute_pid_Kas(float angle_pitch)
 {
 	float Kp = gPidAngle.GetKp();
 	float Ki = gPidAngle.GetKi();
@@ -122,7 +132,6 @@ void compute_pid_Kas(float angle_pitch)
 	unsigned long now = millis();
 	unsigned long dt = (now - lastTime);
 	float error;
-	float pTerm, iTerm, dTerm;
 #if 0
 	int count_l, count_r;
 	int cur_count;
@@ -143,48 +152,20 @@ void compute_pid_Kas(float angle_pitch)
 	fTgtAngle = 0.0;
 #endif
 	error = fTgtAngle - angle_pitch;
-	float dErr = (error - last_error) / dt;
+
+	pTerm = Kp * error;
 
 	errSum += error * dt;
-	pTerm = Kp * error;
 	iTerm = Ki * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
+
+	float dErr = (error - last_error) / dt;
 	dTerm = Kd * dErr;
 
 	last_error = error;
 	lastTime = now;
 
-	fPwm = constrain((pTerm + iTerm + dTerm), -255, 255);
+	return constrain((pTerm + iTerm + dTerm), -255, 255);
 }
-
-float last_input;
-
-void compute_pid_adr(float angle_pitch)
-{
-	float Kp = gPidAngle.GetKp();
-	float Ki = gPidAngle.GetKi();
-	float Kd = gPidAngle.GetKd();
-	unsigned long now = millis();
-	unsigned long dt = (now - lastTime);
-	float error;
-	float pTerm, iTerm, dTerm;
-
-	fTgtAngle = 0.0;
-
-	error = fTgtAngle - angle_pitch;
-
-	pTerm = Kp * error;
-	errSum += Ki * error * dt;
-	iTerm = constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
-	float dInput = angle_pitch - last_input;
-	dTerm = -(Kd * dInput / dt);
-
-	last_input = angle_pitch;
-	last_error = error;
-	lastTime = now;
-
-	fPwm = constrain((pTerm + iTerm + dTerm), -255, 255);
-}
-
 
 void balancing_loop()
 {
@@ -200,24 +181,23 @@ void balancing_loop()
 		motor_left.SetPwm(0);
 		motor_right.SetPwm(0);
 
-		if (motor_left.GetCurRpm() || motor_right.GetCurRpm()) {
+		if (motor_left.GetCurRpm() || motor_right.GetCurRpm() || motor_left.GetCurrent() || motor_right.GetCurrent()) {
 			balancing_print();
 		}
 		return;
 	}
 
-	//compute_pid(angle_pitch);
-	//compute_pid_Kas(angle_pitch);
-	compute_pid_adr(angle_pitch);
+	//fPwm = compute_pid(angle_pitch);
+	//fPwm = compute_pid_Kas(angle_pitch);
+	fPwm = compute_pid_adr(angle_pitch);
 
 	//fPwm = fPwm * abs(fPwm);
 
-	nPwmL = fPwm + nDir;
-	nPwmR = fPwm - nDir;
+	nPwmL = (int)((double)(fPwm - nDir) * 0.9);
+	nPwmR = fPwm + nDir;
 
 #if 1
-#if 1
-#define SHRINK_TOO_LOW_PWM	5
+#define SHRINK_TOO_LOW_PWM	1
 	if (abs(nPwmL) <= SHRINK_TOO_LOW_PWM) {
 		motor_left.SetPwm(0);
 	} else if (nPwmL > 0) {
@@ -232,24 +212,6 @@ void balancing_loop()
 	} else {
 		motor_right.SetPwm(nPwmR);
 	}
-#else
-	motor_left.SetCharacteristics(0, 0, 0);
-	motor_right.SetCharacteristics(0, 0, 0);
-	if (nPwmL == 0) {
-		motor_left.SetPwm(0);
-	} else if (nPwmL > 0) {
-		motor_left.SetPwm(nPwmL + INITIAL_PWM_M0);
-	} else {
-		motor_left.SetPwm(nPwmL - INITIAL_PWM_M0);
-	}
-	if (nPwmR == 0) {
-		motor_right.SetPwm(0);
-	} else if (nPwmR > 0) {
-		motor_right.SetPwm(nPwmR + INITIAL_PWM_M1);
-	} else {
-		motor_right.SetPwm(nPwmR - INITIAL_PWM_M1);
-	}
-#endif
 #endif
 
 	balancing_print();
@@ -358,7 +320,8 @@ void balancing_inc_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki += 0.1;
+	Ki += 1;
+	errSum = 0;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print_k();
 }
@@ -370,7 +333,8 @@ void balancing_dec_angle_ki(void)
 	Kp = gPidAngle.GetKp();
 	Ki = gPidAngle.GetKi();
 	Kd = gPidAngle.GetKd();
-	Ki -= 0.1;
+	Ki -= 1;
+	errSum = 0;
 	gPidAngle.SetTunings(Kp, Ki, Kd);
 	balancing_print_k();
 }

@@ -59,39 +59,15 @@ int Motor::calibratePwmAtLowSpeed(int pwm)
 {
 	if (pwm != 0 && unMinRpm > 0 && abs(pwm) < unInitPwm) {
 		if (abs(nCurRpm) < unMinRpm) {
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print("(1) ");
-Serial.print(pwm);
-#endif
 			if (pwm > 0) {
 				pwm = unInitPwm;
 			} else {
 				pwm = -unInitPwm;
 			}
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print(" -> ");
-Serial.println(pwm);
-#endif
 		} else if (nCurRpm > 0 && 0 > pwm) {
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print("(2) ");
-Serial.print(pwm);
-#endif
 			pwm = -unInitPwm;
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print(" -> ");
-Serial.println(pwm);
-#endif
 		} else if (nCurRpm < 0 && 0 < pwm) {
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print("(3) ");
-Serial.print(pwm);
-#endif
 			pwm = unInitPwm;
-#if defined(MOTOR_PWM_MIDIFICATION_DEBUG)
-Serial.print(" -> ");
-Serial.println(pwm);
-#endif
 		}
 	}
 	return pwm;

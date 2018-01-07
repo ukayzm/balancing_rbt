@@ -22,6 +22,8 @@ extern void balancing_inc_angle_kd(void);
 extern void balancing_dec_angle_kd(void);
 
 unsigned long loop_timer;
+extern float last_error;
+extern unsigned long lastTime;
 
 void setup() {
   // put your setup code here, to run once:

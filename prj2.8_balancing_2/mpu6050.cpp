@@ -106,10 +106,10 @@ void mpu6050_setup() {
  * gyroXangle: X angle by gyroscope
  * compAngleX: X angle by complementary filter
  * kalAngleX: X angle by Kalman filter
- * pitch: X angle by accelerometer
- * gyroYangle: X angle by gyroscope
- * compAngleY: X angle by complementary filter
- * kalAngleY: X angle by Kalman filter
+ * pitch: Y angle by accelerometer
+ * gyroYangle: Y angle by gyroscope
+ * compAngleY: Y angle by complementary filter
+ * kalAngleY: Y angle by Kalman filter
  */
 void mpu6050_loop()
 {
@@ -230,6 +230,6 @@ void mpu6050_loop()
 float get_pitch_angle(void)
 {
 	/* in this robot, Y is pitch. */
-	return -kalAngleY - 3;
+	return -kalAngleY - 1.5;
 }
 

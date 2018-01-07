@@ -48,7 +48,7 @@ extern Motor motor_left, motor_right;
 
 
 /* msec */
-#define LOOP_MS     5
+#define LOOP_MS     6
 //#define INTERVAL_MPU6050	LOOP_MS
 //#define INTERVAL_IR			LOOP_MS
 #define INTERVAL_BALANCING	LOOP_MS
