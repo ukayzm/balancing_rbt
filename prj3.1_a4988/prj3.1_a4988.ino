@@ -2,59 +2,6 @@
  * prj3.1 - a4988
  */
 
-//simple A4988 connection
-//jumper reset and sleep together
-//connect  VDD to Arduino 3.3v or 5v
-//connect  GND to Arduino GND (GND near VDD)
-//connect  1A and 1B to stepper coil 1
-//connect 2A and 2B to stepper coil 2
-//connect VMOT to power source (9v battery + term)
-//connect GRD to power source (9v battery - term)
-
-int stp = 5;  //connect pin 13 to step
-int dir = 6;  // connect pin 12 to dir
-int dir2 = 8;  // connect pin 12 to dir
-int en = 7;  // connect pin 12 to dir
-
-#define TIMER2_HZ	16000
-
-/*
- * ISR for timer2 runs at 8kHz frequency.
- */
-uint16_t cnt, max_cnt;
-ISR(TIMER2_COMPA_vect)
-{
-	if (max_cnt > 0) {
-		if (cnt == 0) {
-			digitalWrite(stp, HIGH);  
-		} else if (cnt == 1) {
-			digitalWrite(stp, LOW);  
-		}
-		cnt++;
-		if (cnt > max_cnt) {
-			cnt = 0;
-		}
-	}
-}
-
-uint16_t rpm2maxcnt(uint16_t rpm)
-{
-	float pps = rpm * 200.0 / 60.0;
-	return (uint16_t)(TIMER2_HZ / pps);
-}
-
-void set_rpm(int16_t rpm)
-{
-	if (rpm == 0) {
-		max_cnt = 0;
-		cnt = 0;
-		digitalWrite(stp, LOW);
-	}
-	max_cnt = rpm2maxcnt(rpm);
-	Serial.print(rpm);
-	Serial.print(", ");
-	Serial.println(max_cnt);
-}
 
 void setup() 
 {                
@@ -64,38 +11,6 @@ void setup()
 	pinMode(dir2, OUTPUT);       
 	pinMode(en, OUTPUT);       
 	digitalWrite(en, LOW);   
-
-	/*
-	 * set timer2 interrupt at 8kHz
-	 * ref: http://www.instructables.com/id/Arduino-Timer-Interrupts
-	 */
-	cli();//stop interrupts
-
-	TCCR2A = 0;// set entire TCCR2A register to 0
-	TCCR2B = 0;// same for TCCR2B
-	TCNT2  = 0;//initialize counter value to 0
-#if (TIMER2_HZ == 8000)
-	// set compare match register for 8khz increments
-	OCR2A = 249;// = (16*10^6) / (8000*8) - 1 (must be <256)
-	// Set CS21 bit for 8 prescaler
-	TCCR2B |= (1 << CS21);   
-#elif (TIMER2_HZ == 16000)
-	// set compare match register for 8khz increments
-	OCR2A = 124;// = (16*10^6) / (16000*8) - 1 (must be <256)
-	// Set CS21 bit for 8 prescaler
-	TCCR2B |= (1 << CS21);   
-#else
-#error unsupported TIMER2_HZ
-#endif
-	// turn on CTC mode
-	TCCR2A |= (1 << WGM21);
-	// enable timer compare interrupt
-	TIMSK2 |= (1 << OCIE2A);
-
-	sei();//allow interrupts
-
-	digitalWrite(dir, HIGH);
-	digitalWrite(dir2, LOW);
 
 	set_rpm(300);
 }
@@ -116,4 +31,101 @@ void loop()
 		delay(500);
 	}
 #endif
+}
+
+extern double fAngleKp;
+extern double fAngleKi;
+extern double fAngleKd;
+extern double fSpeedKp;
+extern double fSpeedKi;
+extern double fSpeedKd;
+
+void check_ir()
+{
+  uint32_t ir_code;
+  static uint32_t last_ir_code;
+  static uint32_t last_ir_ms;
+
+  ir_code = recv_IR();
+
+  if (ir_code == 0) {
+    return;
+  }
+  if (ir_code != 0x4de93dc4
+   && ir_code != 0x26e6c1ca
+   && ir_code != 0x6d89e538
+   && ir_code != 0xdad4e90b) {
+    if ((last_ir_ms + 250 > millis()) && (ir_code == last_ir_code)) {
+      return;
+    }
+  }
+
+  if (ir_code == 0x4de93dc4) {
+    Serial.println("^");
+	balancing_inc_tgt();
+  } else if (ir_code == 0x26e6c1ca) {
+    Serial.println("v");
+	balancing_dec_tgt();
+  } else if (ir_code == 0x6d89e538) {
+    Serial.println(">");
+	balancing_inc_dir();
+  } else if (ir_code == 0xdad4e90b) {
+    Serial.println("<");
+	balancing_dec_dir();
+  } else if (ir_code == 0x7d399127) {
+    Serial.println("OK");
+	balancing_reset_tgtdir();
+  } else if (ir_code == 0xcf98a7b6) {
+    Serial.println("CH+");
+	fSpeedKp += 0.01;
+  } else if (ir_code == 0x107f5e27) {
+    Serial.println("CH-");
+	fSpeedKp -= 0.01;
+  } else if (ir_code == 0x68a199f0) {
+    Serial.println("REC");
+	fSpeedKi += 0.01;
+  } else if (ir_code == 0xf169e8b2) {
+    Serial.println("REPLAY");
+	fSpeedKi -= 0.01;
+  } else if (ir_code == 0xd7d018ec) {
+    Serial.println("VOL+");
+	fSpeedKd += 0.01;
+  } else if (ir_code == 0xf49b208a) {
+    Serial.println("VOL-");
+	fSpeedKd -= 0.01;
+  } else if (ir_code == 0x16d5cb04) {
+    Serial.println("FF");
+	fAngleKp += 0.01;
+  } else if (ir_code == 0x7547960e) {
+    Serial.println("NEXT");
+	fAngleKp -= 0.01;
+  } else if (ir_code == 0x32939470) {
+    Serial.println("PLAY/PAUSE");
+	fAngleKi += 0.01;
+  } else if (ir_code == 0x407e2e01) {
+    Serial.println("STOP");
+	fAngleKi -= 0.01;
+  } else if (ir_code == 0x19fd189b) {
+    Serial.println("REW");
+	fAngleKd += 0.01;
+  } else if (ir_code == 0xd1921028) {
+    Serial.println("PREV");
+	fAngleKd -= 0.01;
+  } else if (ir_code == 0x26ecbcf3) {
+    Serial.println("(0)");
+  } else if (ir_code == 0x9004b206) {
+    Serial.println("(1)");
+  } else if (ir_code == 0xc35f14b9) {
+    Serial.println("(2)");
+  } else if (ir_code == 0x6bef8366) {
+    Serial.println("PWR");
+  } else if (ir_code == 0xbe663d0a) {
+    Serial.println("MUTE");
+  } else if (ir_code == 0xae7fbf1d) {
+    Serial.println("TEXT");
+  } else {
+    Serial.println(ir_code, HEX);
+  }
+  last_ir_ms = millis();
+  last_ir_code = ir_code;
 }
