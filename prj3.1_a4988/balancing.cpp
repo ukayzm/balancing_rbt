@@ -25,7 +25,7 @@
 #define ANGLE_KI	(2.0*ANGLE_KP/TU)
 #define ANGLE_KD	(KP*TU/8.0)
 #else
-#define ANGLE_KP	30.0
+#define ANGLE_KP	20.0
 #define ANGLE_KI	0.0
 #define ANGLE_KD	0.0
 #endif
@@ -41,6 +41,8 @@ double fTgtAngle, fInAngle, fPwm;
 double pTerm, iTerm, dTerm;
 float errSum = 0;
 int32_t nDir;
+
+extern void motor_set_rpm(int16_t rpm);
 
 void balancing_print_k(void)
 {
@@ -76,13 +78,6 @@ void balancing_print(void)
 
 void balancing_setup()
 {
-	gPidSpeed.SetSampleTime(INTERVAL_BALANCING);
-	gPidSpeed.SetMode(AUTOMATIC);
-	gPidSpeed.SetOutputLimits(-10, 10);
-
-	gPidAngle.SetSampleTime(INTERVAL_BALANCING);
-	gPidAngle.SetMode(AUTOMATIC);
-	gPidAngle.SetOutputLimits(-255, 255);
 }
 
 float last_error = 0;
@@ -93,22 +88,19 @@ float last_input;
 
 float compute_pid_adr(float angle_pitch)
 {
-	float Kp = gPidAngle.GetKp();
-	float Ki = gPidAngle.GetKi();
-	float Kd = gPidAngle.GetKd();
 	unsigned long now = millis();
 	float dt = (float)(now - lastTime) / 1000.0;
 	float error;
 
 	error = fTgtAngle - angle_pitch;
 
-	pTerm = Kp * error;
+	pTerm = fAngleKp * error;
 
-	errSum += Ki * error * dt;
+	errSum += fAngleKi * error * dt;
 	iTerm = constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
 
 	float dInput = angle_pitch - last_input;
-	dTerm = Kd * (-dInput / dt);
+	dTerm = fAngleKd * (-dInput / dt);
 
 	last_input = angle_pitch;
 	last_error = error;
@@ -120,40 +112,19 @@ float compute_pid_adr(float angle_pitch)
 
 float compute_pid_Kas(float angle_pitch)
 {
-	float Kp = gPidAngle.GetKp();
-	float Ki = gPidAngle.GetKi();
-	float Kd = gPidAngle.GetKd();
 	unsigned long now = millis();
 	unsigned long dt = (now - lastTime);
 	float error;
-#if 0
-	int count_l, count_r;
-	int cur_count;
-	float pTerm_Wheel, dTerm_Wheel;
-	float Kp_wheel = gPidSpeed.GetKp();
-	float Kd_wheel = gPidSpeed.GetKd();
 
-	count_l = motor_left.GetAccIntr();
-	motor_left.ResetAccIntr();
-	count_r = motor_right.GetAccIntr();
-	motor_right.ResetAccIntr();
-	cur_count = count_l + count_r;
-
-	pTerm_Wheel = Kp_Wheel * cur_count;           //  -(Kxp/100) * count;
-	dTerm_Wheel = Kd_Wheel * (cur_count - last_count);
-	last_count = cur_count;
-#else
-	fTgtAngle = 0.0;
-#endif
 	error = fTgtAngle - angle_pitch;
 
-	pTerm = Kp * error;
+	pTerm = fAngleKp * error;
 
 	errSum += error * dt;
-	iTerm = Ki * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
+	iTerm = fAngleKi * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
 
 	float dErr = (error - last_error) / dt;
-	dTerm = Kd * dErr;
+	dTerm = fAngleKd * dErr;
 
 	last_error = error;
 	lastTime = now;
@@ -177,6 +148,7 @@ void balancing_loop()
 	//fPwm = compute_pid(angle_pitch);
 	//fPwm = compute_pid_Kas(angle_pitch);
 	fPwm = compute_pid_adr(angle_pitch);
+	motor_set_rpm(fPwm);
 
 	//fPwm = fPwm * abs(fPwm);
 

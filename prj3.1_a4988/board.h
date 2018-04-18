@@ -9,12 +9,12 @@ extern uint32_t recv_IR(void);
 
 
 /* arduino pin */
-#define STEP0	5
-#define DIR0	6
-#define EN0		7
-#define STEP1	8
-#define DIR1	9
-#define EN1		10
+#define EN0		5
+#define STEP0	6
+#define DIR0	7
+#define EN1		8
+#define STEP1	9
+#define DIR1	10
 
 
 #define IR_PIN			A3

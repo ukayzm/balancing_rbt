@@ -1,38 +1,49 @@
 /*
  * prj3.1 - a4988
  */
+#include "board.h"
+#include "mpu6050.h"
 
+unsigned long loop_timer;
+
+extern void balancing_setup(void);
+extern void balancing_loop(void);
+extern void motor_set_rpm(int16_t rpm);
 
 void setup() 
 {                
 	Serial.begin(115200);
-	pinMode(stp, OUTPUT);
-	pinMode(dir, OUTPUT);       
-	pinMode(dir2, OUTPUT);       
-	pinMode(en, OUTPUT);       
-	digitalWrite(en, LOW);   
+	setup_board();
+	balancing_setup();
 
-	set_rpm(300);
+	/*Set the loop_timer variable at the next end loop time */
+	loop_timer = micros() + LOOP_MS * 1000;
+	while (loop_timer > micros());
+	loop_timer += LOOP_MS * 1000;
 }
 
 void loop() 
 {
 #if 1
-	int rpm;
+	balancing_loop();
+	mpu6050_loop();
+	//check_ir();
 
-	for (rpm = 0; rpm <= 30; rpm += 2)
-	{
-		set_rpm(rpm);
-		delay(500);
-	}
-	for (rpm = 30; rpm <= 500; rpm += 10)
-	{
-		set_rpm(rpm);
+	/*Set the loop_timer variable at the next end loop time */
+	//Serial.println(loop_timer - micros());
+	while (loop_timer > micros());
+	loop_timer = micros() + LOOP_MS * 1000;
+#else
+	int i;
+
+	for (i = 0; i < 30; i++) {
+		motor_set_rpm(i);
 		delay(500);
 	}
 #endif
 }
 
+#if 0
 extern double fAngleKp;
 extern double fAngleKi;
 extern double fAngleKd;
@@ -129,3 +140,5 @@ void check_ir()
   last_ir_ms = millis();
   last_ir_code = ir_code;
 }
+#endif
+

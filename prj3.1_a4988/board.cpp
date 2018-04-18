@@ -3,16 +3,16 @@
 #include "mpu6050.h"
 
 
+#define TIMER2_HZ	16000
+
+
 void setup_board()
 {
-	motor_left.SetPIN(M0_PWM_PIN, M0_CTRL0_PIN, M0_CTRL1_PIN, M0_CURRENT_PIN);
-	motor_right.SetPIN(M1_PWM_PIN, M1_CTRL0_PIN, M1_CTRL1_PIN, M1_CURRENT_PIN);
-
 	Serial.println("Power supply: 3S LiPo Battery");
 	Serial.println("Motor driver: a4988");
 
-	setup_IR();
-	Serial.println("IR done.");
+	//setup_IR();
+	//Serial.println("IR done.");
 
 	mpu6050_setup();
 	Serial.println("mpu6050 done.");
@@ -56,17 +56,9 @@ void setup_board()
 	pinMode(DIR1, OUTPUT);
 	pinMode(EN1, OUTPUT);
 
-	digitalWrite(DIR0, HIGH);
-	digitalWrite(DIR1, LOW);
-
+	digitalWrite(EN0, LOW);
+	digitalWrite(EN1, LOW);
 }
-
-int stp = 5;  //connect pin 13 to step
-int dir = 6;  // connect pin 12 to dir
-int dir2 = 8;  // connect pin 12 to dir
-int en = 7;  // connect pin 12 to dir
-
-#define TIMER2_HZ	16000
 
 /*
  * ISR for timer2 runs at 8kHz frequency.
@@ -77,8 +69,10 @@ ISR(TIMER2_COMPA_vect)
 	if (max_cnt > 0) {
 		if (cnt == 0) {
 			digitalWrite(STEP0, HIGH);  
+			digitalWrite(STEP1, HIGH);  
 		} else if (cnt == 1) {
 			digitalWrite(STEP0, LOW);  
+			digitalWrite(STEP1, LOW);  
 		}
 		cnt++;
 		if (cnt > max_cnt) {
@@ -101,12 +95,12 @@ void motor_set_rpm(int16_t rpm)
 		digitalWrite(STEP0, LOW);
 		max_cnt = 0;
 	} else if (rpm < 0) {
-		digitalWrite(DIR0, HIGH);
-		digitalWrite(DIR1, LOW);
-		max_cnt = rpm2maxcnt(-rpm);
-	} else {
 		digitalWrite(DIR0, LOW);
 		digitalWrite(DIR1, HIGH);
+		max_cnt = rpm2maxcnt(-rpm);
+	} else {
+		digitalWrite(DIR0, HIGH);
+		digitalWrite(DIR1, LOW);
 		max_cnt = rpm2maxcnt(rpm);
 	}
 #if 0
