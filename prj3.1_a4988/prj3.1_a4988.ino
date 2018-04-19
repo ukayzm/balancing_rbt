@@ -9,6 +9,7 @@ IRrecv irrecv(IR_PIN);
 
 unsigned long loop_timer;
 
+void check_ir();
 extern void balancing_setup(void);
 extern void balancing_loop(void);
 extern void motor_set_rpm(int16_t rpm);
@@ -34,7 +35,7 @@ void loop()
 #if 1
 	balancing_loop();
 	mpu6050_loop();
-	//check_ir();
+	check_ir();
 
 	/*Set the loop_timer variable at the next end loop time */
 	//Serial.println(loop_timer - micros());
@@ -123,22 +124,22 @@ void check_ir()
 	fSpeedKd -= 0.01;
   } else if (ir_code == 0x16d5cb04) {
     Serial.println("FF");
-	fAngleKp += 0.01;
+	fAngleKp += 1;
   } else if (ir_code == 0x7547960e) {
     Serial.println("NEXT");
-	fAngleKp -= 0.01;
+	fAngleKp -= 1;
   } else if (ir_code == 0x32939470) {
     Serial.println("PLAY/PAUSE");
-	fAngleKi += 0.01;
+	fAngleKi += 0.1;
   } else if (ir_code == 0x407e2e01) {
     Serial.println("STOP");
-	fAngleKi -= 0.01;
+	fAngleKi -= 0.1;
   } else if (ir_code == 0x19fd189b) {
     Serial.println("REW");
-	fAngleKd += 0.01;
+	fAngleKd += 0.1;
   } else if (ir_code == 0xd1921028) {
     Serial.println("PREV");
-	fAngleKd -= 0.01;
+	fAngleKd -= 0.1;
   } else if (ir_code == 0x26ecbcf3) {
     Serial.println("(0)");
   } else if (ir_code == 0x9004b206) {

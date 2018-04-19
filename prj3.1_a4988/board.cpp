@@ -16,6 +16,10 @@
 #define TIMER2_HZ	16000
 #endif
 
+#if defined(SHARE_TIMER2_WITH_IRREMOTE)
+void timer_isr();
+extern void (*external_timer2_isr)();
+#endif
 
 void setup_board()
 {
@@ -71,6 +75,10 @@ void setup_board()
 
 	digitalWrite(EN0, LOW);
 	digitalWrite(EN1, LOW);
+
+#if defined(SHARE_TIMER2_WITH_IRREMOTE)
+	external_timer2_isr = timer_isr;
+#endif
 }
 
 /*
@@ -110,14 +118,21 @@ void motor_set_rpm(int16_t rpm)
 		max_cnt = 0;
 		cnt = 0;
 		digitalWrite(STEP0, LOW);
+		digitalWrite(STEP1, LOW);
+		digitalWrite(EN0, HIGH);
+		digitalWrite(EN1, HIGH);
 		max_cnt = 0;
 	} else if (rpm < 0) {
 		digitalWrite(DIR0, LOW);
 		digitalWrite(DIR1, HIGH);
+		digitalWrite(EN0, LOW);
+		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(-rpm);
 	} else {
 		digitalWrite(DIR0, HIGH);
 		digitalWrite(DIR1, LOW);
+		digitalWrite(EN0, LOW);
+		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(rpm);
 	}
 #if 0

@@ -66,11 +66,14 @@ void balancing_print(void)
 		balancing_print_k();
 	}
 	Serial.print("P,"); Serial.print(cur_ms - last_ms);
+	Serial.print(",\t"); Serial.print(fAngleKp, 1);
+	Serial.print(",\t"); Serial.print(fAngleKi, 1);
+	Serial.print(",\t"); Serial.print(fAngleKd, 1);
 	Serial.print(",\t"); Serial.print(get_pitch_angle(), 2);
-	Serial.print(",\t"); Serial.print(pTerm, 2);
-	Serial.print(",\t"); Serial.print(errSum, 2);
-	Serial.print(",\t"); Serial.print(iTerm, 2);
-	Serial.print(",\t"); Serial.print(dTerm, 2);
+	//Serial.print(",\t"); Serial.print(pTerm, 2);
+	//Serial.print(",\t"); Serial.print(errSum, 2);
+	//Serial.print(",\t"); Serial.print(iTerm, 2);
+	//Serial.print(",\t"); Serial.print(dTerm, 2);
 	Serial.print(",\t"); Serial.print(fPwm, 0);
 	Serial.println("");
 	last_ms = cur_ms;
@@ -106,7 +109,7 @@ float compute_pid_adr(float angle_pitch)
 	last_error = error;
 	lastTime = now;
 
-	return constrain((pTerm + iTerm + dTerm), -255, 255);
+	return constrain((pTerm + iTerm + dTerm), -600, 600);
 }
 
 
@@ -129,7 +132,7 @@ float compute_pid_Kas(float angle_pitch)
 	last_error = error;
 	lastTime = now;
 
-	return constrain((pTerm + iTerm + dTerm), -255, 255);
+	return constrain((pTerm + iTerm + dTerm), -600, 600);
 }
 
 void balancing_loop()
