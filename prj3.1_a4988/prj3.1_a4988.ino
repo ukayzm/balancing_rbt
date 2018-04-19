@@ -1,8 +1,11 @@
 /*
  * prj3.1 - a4988
  */
+#include <IRremote.h>
 #include "board.h"
 #include "mpu6050.h"
+
+IRrecv irrecv(IR_PIN);
 
 unsigned long loop_timer;
 
@@ -13,6 +16,10 @@ extern void motor_set_rpm(int16_t rpm);
 void setup() 
 {                
 	Serial.begin(115200);
+
+	irrecv.enableIRIn(); // Start the receiver
+	Serial.println("IR done.");
+
 	setup_board();
 	balancing_setup();
 
@@ -43,21 +50,31 @@ void loop()
 #endif
 }
 
-#if 0
+#if 1
 extern double fAngleKp;
 extern double fAngleKi;
 extern double fAngleKd;
 extern double fSpeedKp;
 extern double fSpeedKi;
 extern double fSpeedKd;
+extern void balancing_inc_tgt(void);
+extern void balancing_dec_tgt(void);
+extern void balancing_inc_dir(void);
+extern void balancing_dec_dir(void);
+extern void balancing_reset_tgtdir(void);
 
 void check_ir()
 {
+  decode_results results;
   uint32_t ir_code;
   static uint32_t last_ir_code;
   static uint32_t last_ir_ms;
 
-  ir_code = recv_IR();
+  results.value = 0;
+  if (irrecv.decode(&results)) {
+    irrecv.resume(); // Receive the next value
+  }
+  ir_code = results.value;
 
   if (ir_code == 0) {
     return;

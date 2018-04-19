@@ -3,7 +3,18 @@
 #include "mpu6050.h"
 
 
+/*
+ * Enable definition to share timer 2 with IRremote library.
+ * You have to modify the IRremote library
+ *  - add a call to timer_isr() at the end of IRTimer() in IRremote.cpp
+ */
+#define SHARE_TIMER2_WITH_IRREMOTE
+
+#if defined(SHARE_TIMER2_WITH_IRREMOTE)
+#define TIMER2_HZ	20000
+#else
 #define TIMER2_HZ	16000
+#endif
 
 
 void setup_board()
@@ -17,6 +28,7 @@ void setup_board()
 	mpu6050_setup();
 	Serial.println("mpu6050 done.");
 	
+#if !defined(SHARE_TIMER2_WITH_IRREMOTE)
 	/*
 	 * set timer2 interrupt at 8kHz
 	 * ref: http://www.instructables.com/id/Arduino-Timer-Interrupts
@@ -45,6 +57,7 @@ void setup_board()
 	TIMSK2 |= (1 << OCIE2A);
 
 	sei();//allow interrupts
+#endif
 
 	Serial.println("timer2 done.");
 
@@ -64,7 +77,11 @@ void setup_board()
  * ISR for timer2 runs at 8kHz frequency.
  */
 uint16_t cnt, max_cnt;
+#if defined(SHARE_TIMER2_WITH_IRREMOTE)
+void timer_isr()
+#else
 ISR(TIMER2_COMPA_vect)
+#endif
 {
 	if (max_cnt > 0) {
 		if (cnt == 0) {
