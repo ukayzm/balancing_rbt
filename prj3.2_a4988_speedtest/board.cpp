@@ -1,6 +1,5 @@
 #include "Arduino.h"
 #include "board.h"
-#include "mpu6050.h"
 
 
 /*
@@ -26,13 +25,9 @@ void setup_board()
 	Serial.println("Power supply: 3S LiPo Battery");
 	Serial.println("Motor driver: a4988");
 
-	//setup_IR();
-	//Serial.println("IR done.");
-
-	mpu6050_setup();
-	Serial.println("mpu6050 done.");
-	
-#if !defined(SHARE_TIMER2_WITH_IRREMOTE)
+#if defined(SHARE_TIMER2_WITH_IRREMOTE)
+	external_timer2_isr = timer_isr;
+#else
 	/*
 	 * set timer2 interrupt at 8kHz
 	 * ref: http://www.instructables.com/id/Arduino-Timer-Interrupts
@@ -73,12 +68,8 @@ void setup_board()
 	pinMode(DIR1, OUTPUT);
 	pinMode(EN1, OUTPUT);
 
-	digitalWrite(EN0, LOW);
+	digitalWrite(EN0, HIGH);
 	digitalWrite(EN1, LOW);
-
-#if defined(SHARE_TIMER2_WITH_IRREMOTE)
-	external_timer2_isr = timer_isr;
-#endif
 }
 
 /*
@@ -95,7 +86,7 @@ ISR(TIMER2_COMPA_vect)
 		if (cnt == 0) {
 			digitalWrite(STEP0, HIGH);  
 			digitalWrite(STEP1, HIGH);  
-		} else if (cnt == 1) {
+		} else if (cnt == max_cnt / 2) {
 			digitalWrite(STEP0, LOW);  
 			digitalWrite(STEP1, LOW);  
 		}
@@ -108,7 +99,7 @@ ISR(TIMER2_COMPA_vect)
 
 uint16_t rpm2maxcnt(uint16_t rpm)
 {
-	float pps = (float)rpm * 4 * 200.0 / 60.0;
+	float pps = rpm * 200.0 / 60.0;
 	return (uint16_t)(TIMER2_HZ / pps);
 }
 
@@ -125,17 +116,17 @@ void motor_set_rpm(int16_t rpm)
 	} else if (rpm < 0) {
 		digitalWrite(DIR0, LOW);
 		digitalWrite(DIR1, HIGH);
-		digitalWrite(EN0, LOW);
+		digitalWrite(EN0, HIGH);
 		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(-rpm);
 	} else {
 		digitalWrite(DIR0, HIGH);
 		digitalWrite(DIR1, LOW);
-		digitalWrite(EN0, LOW);
+		digitalWrite(EN0, HIGH);
 		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(rpm);
 	}
-#if 0
+#if 1
 	Serial.print(rpm);
 	Serial.print(", ");
 	Serial.println(max_cnt);
