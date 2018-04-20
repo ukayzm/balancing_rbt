@@ -97,10 +97,26 @@ ISR(TIMER2_COMPA_vect)
 	}
 }
 
+/*
+ * MICROSTEP:
+ * 1: full step
+ * 2: half step
+ * 4: quarter step
+ * 8: eights step
+ * 16: sixteenth step
+ */
+#define MICROSTEP	4
 uint16_t rpm2maxcnt(uint16_t rpm)
 {
-	float pps = rpm * 200.0 / 60.0;
-	return (uint16_t)(TIMER2_HZ / pps);
+	float pps = rpm * MICROSTEP * (200.0 / 60.0);
+	uint16_t maxcnt = (uint16_t)(TIMER2_HZ / pps);
+#if 1
+	Serial.print(rpm); Serial.print(" RPM");
+	Serial.print("\t= "); Serial.print(pps); Serial.print(" pulse per sec (Hz)");
+	Serial.print("\t= "); Serial.print(max_cnt); Serial.print(" timer tick between pulse");
+	Serial.println();
+#endif
+	return maxcnt;
 }
 
 void motor_set_rpm(int16_t rpm)
@@ -126,10 +142,5 @@ void motor_set_rpm(int16_t rpm)
 		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(rpm);
 	}
-#if 1
-	Serial.print(rpm);
-	Serial.print(", ");
-	Serial.println(max_cnt);
-#endif
 }
 

@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "board.h"
 #include "mpu6050.h"
+#include "pid.h"
 
 
 #define SPEED_KP		0.0
@@ -30,17 +31,12 @@
 #define ANGLE_KD	0.0
 #endif
 
-double fAngleKp = ANGLE_KP;
-double fAngleKi = ANGLE_KI;
-double fAngleKd = ANGLE_KD;
-double fSpeedKp = SPEED_KP;
-double fSpeedKi = SPEED_KI;
-double fSpeedKd = SPEED_KD;
-double fTgtSpeed, fInSpeed;
-double fTgtAngle, fInAngle, fPwm;
-double pTerm, iTerm, dTerm;
-float errSum = 0;
+float fTgtSpeed, fTgtAngle;
+float fCurAngle, fSetSpeed;
 int32_t nDir;
+
+Pid AnglePid(ANGLE_KP, ANGLE_KI, ANGLE_KD, 200, LOOP_USEC);
+Pid SpeedPid(SPEED_KP, SPEED_KI, SPEED_KD, 200, LOOP_USEC);
 
 extern void motor_set_rpm(int16_t rpm);
 
@@ -48,12 +44,12 @@ void balancing_print_k(void)
 {
 	Serial.print("K,"); Serial.print(fTgtSpeed, 2);
 	Serial.print(",\t"); Serial.print(fTgtAngle, 2);
-	Serial.print(",\t"); Serial.print(fSpeedKp, 1);
-	Serial.print(",\t"); Serial.print(fSpeedKi, 1);
-	Serial.print(",\t"); Serial.print(fSpeedKd, 1);
-	Serial.print(",\t"); Serial.print(fAngleKp, 1);
-	Serial.print(",\t"); Serial.print(fAngleKi, 1);
-	Serial.print(",\t"); Serial.print(fAngleKd, 1);
+	Serial.print(",\t"); Serial.print(SpeedPid.getKp(), 1);
+	Serial.print(",\t"); Serial.print(SpeedPid.getKi(), 1);
+	Serial.print(",\t"); Serial.print(SpeedPid.getKd(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKp(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKi(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKd(), 1);
 	Serial.println("");
 }
 
@@ -66,15 +62,11 @@ void balancing_print(void)
 		balancing_print_k();
 	}
 	Serial.print("P,"); Serial.print(cur_ms - last_ms);
-	Serial.print(",\t"); Serial.print(fAngleKp, 1);
-	Serial.print(",\t"); Serial.print(fAngleKi, 1);
-	Serial.print(",\t"); Serial.print(fAngleKd, 1);
-	Serial.print(",\t"); Serial.print(get_pitch_angle(), 2);
-	//Serial.print(",\t"); Serial.print(pTerm, 2);
-	//Serial.print(",\t"); Serial.print(errSum, 2);
-	//Serial.print(",\t"); Serial.print(iTerm, 2);
-	//Serial.print(",\t"); Serial.print(dTerm, 2);
-	Serial.print(",\t"); Serial.print(fPwm, 0);
+	Serial.print(",\t"); Serial.print(AnglePid.getKp(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKi(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKd(), 1);
+	Serial.print(",\t"); Serial.print(fCurAngle, 2);
+	Serial.print(",\t"); Serial.print(fSetSpeed, 0);
 	Serial.println("");
 	last_ms = cur_ms;
 }
@@ -83,78 +75,21 @@ void balancing_setup()
 {
 }
 
-float last_error = 0;
-unsigned long lastTime;
-#define GUARD_GAIN	30
-
-float last_input;
-
-float compute_pid_adr(float angle_pitch)
-{
-	unsigned long now = millis();
-	float dt = (float)(now - lastTime) / 1000.0;
-	float error;
-
-	error = fTgtAngle - angle_pitch;
-
-	pTerm = fAngleKp * error;
-
-	errSum += fAngleKi * error * dt;
-	iTerm = constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
-
-	float dInput = angle_pitch - last_input;
-	dTerm = fAngleKd * (-dInput / dt);
-
-	last_input = angle_pitch;
-	last_error = error;
-	lastTime = now;
-
-	return constrain((pTerm + iTerm + dTerm), -600, 600);
-}
-
-
-float compute_pid_Kas(float angle_pitch)
-{
-	unsigned long now = millis();
-	unsigned long dt = (now - lastTime);
-	float error;
-
-	error = fTgtAngle - angle_pitch;
-
-	pTerm = fAngleKp * error;
-
-	errSum += error * dt;
-	iTerm = fAngleKi * constrain(errSum, -GUARD_GAIN, GUARD_GAIN);
-
-	float dErr = (error - last_error) / dt;
-	dTerm = fAngleKd * dErr;
-
-	last_error = error;
-	lastTime = now;
-
-	return constrain((pTerm + iTerm + dTerm), -600, 600);
-}
-
 void balancing_loop()
 {
-	float angle_pitch;
-	int nPwmL, nPwmR;
-
-	angle_pitch = get_pitch_angle();
-
-	if (angle_pitch < -30 || 30 < angle_pitch) {
+	fCurAngle = get_pitch_angle();
+	if (fCurAngle < -30 || 30 < fCurAngle) {
 		motor_set_rpm(0);
-
 		return;
 	}
 
-	//fPwm = compute_pid(angle_pitch);
-	//fPwm = compute_pid_Kas(angle_pitch);
-	fPwm = compute_pid_adr(angle_pitch);
-	motor_set_rpm(fPwm);
-
-	//fPwm = fPwm * abs(fPwm);
-
+#if 0
+	fTgtAngle = SpeedPid.updatePID(fTgtSpeed, fSetSpeed);
+#else
+	fTgtAngle = 0;
+#endif
+	fSetSpeed = AnglePid.updatePID(fTgtAngle, fCurAngle);
+	motor_set_rpm(fSetSpeed);
 
 	balancing_print();
 }

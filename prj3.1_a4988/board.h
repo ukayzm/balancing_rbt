@@ -20,11 +20,7 @@ extern uint32_t recv_IR(void);
 #define IR_PIN			A3
 
 
-/* msec */
-#define LOOP_MS     6
-//#define INTERVAL_MPU6050	LOOP_MS
-//#define INTERVAL_IR			LOOP_MS
-#define INTERVAL_BALANCING	LOOP_MS
+#define LOOP_USEC     6000
 
 
 #endif // __BOARD_H__

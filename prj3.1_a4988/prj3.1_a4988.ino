@@ -4,43 +4,51 @@
 #include <IRremote.h>
 #include "board.h"
 #include "mpu6050.h"
+#include "pid.h"
 
 IRrecv irrecv(IR_PIN);
 
-unsigned long loop_timer;
+unsigned long loop_start_usec;
 
 void check_ir();
 extern void balancing_setup(void);
 extern void balancing_loop(void);
 extern void motor_set_rpm(int16_t rpm);
 
+extern Pid AnglePid, SpeedPid;
+
 void setup() 
 {                
 	Serial.begin(115200);
+	Serial.println("start setup...");
+
+	mpu6050_setup();
+	Serial.println("MPU6050 initialized");
 
 	irrecv.enableIRIn(); // Start the receiver
-	Serial.println("IR done.");
+	Serial.println("IR initialized");
 
 	setup_board();
 	balancing_setup();
 
-	/*Set the loop_timer variable at the next end loop time */
-	loop_timer = micros() + LOOP_MS * 1000;
-	while (loop_timer > micros());
-	loop_timer += LOOP_MS * 1000;
+	loop_start_usec = micros();
 }
 
 void loop() 
 {
 #if 1
-	balancing_loop();
+	unsigned long used_usec;
+
 	mpu6050_loop();
+	balancing_loop();
 	check_ir();
 
-	/*Set the loop_timer variable at the next end loop time */
-	//Serial.println(loop_timer - micros());
-	while (loop_timer > micros());
-	loop_timer = micros() + LOOP_MS * 1000;
+	/* delay until LOOP_USEC passes */
+	used_usec = micros() - loop_start_usec;
+	if (used_usec < LOOP_USEC) {
+		delayMicroseconds(LOOP_USEC - used_usec);
+	}
+	loop_start_usec = micros();
 #else
 	int i;
 
@@ -106,40 +114,40 @@ void check_ir()
 	balancing_reset_tgtdir();
   } else if (ir_code == 0xcf98a7b6) {
     Serial.println("CH+");
-	fSpeedKp += 0.01;
+	SpeedPid.setKp(SpeedPid.getKp() + 1);
   } else if (ir_code == 0x107f5e27) {
     Serial.println("CH-");
-	fSpeedKp -= 0.01;
+	SpeedPid.setKp(SpeedPid.getKp() - 1);
   } else if (ir_code == 0x68a199f0) {
     Serial.println("REC");
-	fSpeedKi += 0.01;
+	SpeedPid.setKi(SpeedPid.getKi() + 1);
   } else if (ir_code == 0xf169e8b2) {
     Serial.println("REPLAY");
-	fSpeedKi -= 0.01;
+	SpeedPid.setKi(SpeedPid.getKi() - 1);
   } else if (ir_code == 0xd7d018ec) {
     Serial.println("VOL+");
-	fSpeedKd += 0.01;
+	SpeedPid.setKd(SpeedPid.getKd() + 1);
   } else if (ir_code == 0xf49b208a) {
     Serial.println("VOL-");
-	fSpeedKd -= 0.01;
+	SpeedPid.setKd(SpeedPid.getKd() - 1);
   } else if (ir_code == 0x16d5cb04) {
     Serial.println("FF");
-	fAngleKp += 1;
+	AnglePid.setKp(AnglePid.getKp() + 1);
   } else if (ir_code == 0x7547960e) {
     Serial.println("NEXT");
-	fAngleKp -= 1;
+	AnglePid.setKp(AnglePid.getKp() - 1);
   } else if (ir_code == 0x32939470) {
     Serial.println("PLAY/PAUSE");
-	fAngleKi += 0.1;
+	AnglePid.setKi(AnglePid.getKi() + 1);
   } else if (ir_code == 0x407e2e01) {
     Serial.println("STOP");
-	fAngleKi -= 0.1;
+	AnglePid.setKi(AnglePid.getKi() - 1);
   } else if (ir_code == 0x19fd189b) {
     Serial.println("REW");
-	fAngleKd += 0.1;
+	AnglePid.setKd(AnglePid.getKd() + 1);
   } else if (ir_code == 0xd1921028) {
     Serial.println("PREV");
-	fAngleKd -= 0.1;
+	AnglePid.setKd(AnglePid.getKd() - 1);
   } else if (ir_code == 0x26ecbcf3) {
     Serial.println("(0)");
   } else if (ir_code == 0x9004b206) {
