@@ -4,39 +4,12 @@
 #include "pid.h"
 
 
-#define SPEED_KP		0.0
-#define SPEED_KI		0.0
-#define SPEED_KD		0.0
-
-//#define ZIEGLER_NICHOLS_P
-//#define ZIEGLER_NICHOLS_PI
-//#define ZIEGLER_NICHOLS_PID
-#define KU			70.0
-#define TU			(1.0/12.0)
-#if defined(ZIEGLER_NICHOLS_P)
-#define ANGLE_KP	(0.5*KU)
-#define ANGLE_KI	0
-#define ANGLE_KD	0
-#elif defined(ZIEGLER_NICHOLS_PI)
-#define ANGLE_KP	(0.45*KU)
-#define ANGLE_KI	(1.2*ANGLE_KP/TU)
-#define ANGLE_KD	0
-#elif defined(ZIEGLER_NICHOLS_PID)
-#define ANGLE_KP	(0.60*KU)
-#define ANGLE_KI	(2.0*ANGLE_KP/TU)
-#define ANGLE_KD	(KP*TU/8.0)
-#else
-#define ANGLE_KP	20.0
-#define ANGLE_KI	0.0
-#define ANGLE_KD	0.0
-#endif
-
 float fTgtSpeed, fTgtAngle;
 float fCurAngle, fSetSpeed;
 int32_t nDir;
 
-Pid AnglePid(ANGLE_KP, ANGLE_KI, ANGLE_KD, 200, LOOP_USEC);
-Pid SpeedPid(SPEED_KP, SPEED_KI, SPEED_KD, 200, LOOP_USEC);
+Pid AnglePid(ANGLE_KP, ANGLE_KI, ANGLE_KD, 500, LOOP_USEC);
+Pid SpeedPid(SPEED_KP, SPEED_KI, SPEED_KD, 500, LOOP_USEC);
 
 extern void motor_set_rpm(int16_t rpm);
 
@@ -64,7 +37,12 @@ void balancing_print(void)
 	Serial.print("P,"); Serial.print(cur_ms - last_ms);
 	Serial.print(",\t"); Serial.print(AnglePid.getKp(), 1);
 	Serial.print(",\t"); Serial.print(AnglePid.getKi(), 1);
-	Serial.print(",\t"); Serial.print(AnglePid.getKd(), 1);
+	Serial.print(",\t"); Serial.print(AnglePid.getKd(), 2);
+	Serial.print(",\t"); Serial.print(AnglePid.pterm, 1);
+	Serial.print(",\t"); Serial.print(AnglePid.iterm, 1);
+	Serial.print(",\t"); Serial.print(AnglePid.dterm, 1);
+	Serial.print(",\t"); Serial.print(fTgtSpeed, 2);
+	Serial.print(",\t"); Serial.print(fTgtAngle, 2);
 	Serial.print(",\t"); Serial.print(fCurAngle, 2);
 	Serial.print(",\t"); Serial.print(fSetSpeed, 0);
 	Serial.println("");
@@ -83,7 +61,7 @@ void balancing_loop()
 		return;
 	}
 
-#if 0
+#if 1
 	fTgtAngle = SpeedPid.updatePID(fTgtSpeed, fSetSpeed);
 #else
 	fTgtAngle = 0;

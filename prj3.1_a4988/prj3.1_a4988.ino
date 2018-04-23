@@ -114,40 +114,40 @@ void check_ir()
 	balancing_reset_tgtdir();
   } else if (ir_code == 0xcf98a7b6) {
     Serial.println("CH+");
-	SpeedPid.setKp(SpeedPid.getKp() + 1);
+	SpeedPid.setKp(SpeedPid.getKp() + SPEED_KP_STEP);
   } else if (ir_code == 0x107f5e27) {
     Serial.println("CH-");
-	SpeedPid.setKp(SpeedPid.getKp() - 1);
+	SpeedPid.setKp(SpeedPid.getKp() - SPEED_KP_STEP);
   } else if (ir_code == 0x68a199f0) {
     Serial.println("REC");
-	SpeedPid.setKi(SpeedPid.getKi() + 1);
+	SpeedPid.setKi(SpeedPid.getKi() + SPEED_KI_STEP);
   } else if (ir_code == 0xf169e8b2) {
     Serial.println("REPLAY");
-	SpeedPid.setKi(SpeedPid.getKi() - 1);
+	SpeedPid.setKi(SpeedPid.getKi() - SPEED_KI_STEP);
   } else if (ir_code == 0xd7d018ec) {
     Serial.println("VOL+");
-	SpeedPid.setKd(SpeedPid.getKd() + 1);
+	SpeedPid.setKd(SpeedPid.getKd() + SPEED_KD_STEP);
   } else if (ir_code == 0xf49b208a) {
     Serial.println("VOL-");
-	SpeedPid.setKd(SpeedPid.getKd() - 1);
+	SpeedPid.setKd(SpeedPid.getKd() - SPEED_KD_STEP);
   } else if (ir_code == 0x16d5cb04) {
     Serial.println("FF");
-	AnglePid.setKp(AnglePid.getKp() + 1);
+	AnglePid.setKp(AnglePid.getKp() + ANGLE_KP_STEP);
   } else if (ir_code == 0x7547960e) {
     Serial.println("NEXT");
-	AnglePid.setKp(AnglePid.getKp() - 1);
+	AnglePid.setKp(AnglePid.getKp() - ANGLE_KP_STEP);
   } else if (ir_code == 0x32939470) {
     Serial.println("PLAY/PAUSE");
-	AnglePid.setKi(AnglePid.getKi() + 1);
+	AnglePid.setKi(AnglePid.getKi() + ANGLE_KI_STEP);
   } else if (ir_code == 0x407e2e01) {
     Serial.println("STOP");
-	AnglePid.setKi(AnglePid.getKi() - 1);
+	AnglePid.setKi(AnglePid.getKi() - ANGLE_KI_STEP);
   } else if (ir_code == 0x19fd189b) {
     Serial.println("REW");
-	AnglePid.setKd(AnglePid.getKd() + 1);
+	AnglePid.setKd(AnglePid.getKd() + ANGLE_KD_STEP);
   } else if (ir_code == 0xd1921028) {
     Serial.println("PREV");
-	AnglePid.setKd(AnglePid.getKd() - 1);
+	AnglePid.setKd(AnglePid.getKd() - ANGLE_KD_STEP);
   } else if (ir_code == 0x26ecbcf3) {
     Serial.println("(0)");
   } else if (ir_code == 0x9004b206) {

@@ -42,9 +42,17 @@ void loop()
 #else
 	int i;
 
-	for (i = 0; i < 600; i += 5) {
+	for (i = 0; i < 500; i += 1) {
 		motor_set_rpm(i);
-		delay(100);
+		delay(5);
+	}
+	for (i = 500; i >= -500; i -= 1) {
+		motor_set_rpm(i);
+		delay(5);
+	}
+	for (i = -500; i < 0; i += 1) {
+		motor_set_rpm(i);
+		delay(5);
 	}
 #endif
 }

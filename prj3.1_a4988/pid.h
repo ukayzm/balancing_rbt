@@ -20,6 +20,8 @@ public:
 	float getKd(); 
 	float getIlimit();     
 
+	float pterm, iterm, dterm;
+
 private: 
 	float Kp; 
 	float Ki; 

@@ -15,7 +15,7 @@ Pid::Pid(float p, float i, float d, float i_limit, unsigned long typical_interva
 float Pid::updatePID(float target, float current)
 {
 	unsigned long usec = micros();
-	float pterm, iterm, dterm, error;
+	float error;
 	float dt = (float)(usec - last_usec) / 1000000.0;
 
 	if (dt > max_interval_sec) {
@@ -24,6 +24,19 @@ float Pid::updatePID(float target, float current)
 		integrated_error = 0; 
 		return 0;
 	}
+
+#if 1
+	error = target - current;
+
+	pterm = Kp * error;
+	if (1 < error) {
+		pterm *= abs(error);
+	}
+	integrated_error += Ki * error * dt;
+	iterm = constrain(integrated_error, -iterm_limit, iterm_limit);
+
+	dterm = -Kd * (error - last_error) / dt;
+#else
 	error = (target - current) * dt; 
 
 	pterm = Kp * error;
@@ -32,12 +45,13 @@ float Pid::updatePID(float target, float current)
 	integrated_error = constrain(integrated_error, -iterm_limit, iterm_limit);
 	iterm = Ki * integrated_error; 
 
-	pterm = Kd * (error - last_error);
+	dterm = Kd * (error - last_error);
+#endif
 
 	last_error = error;
 	last_usec = usec;
 
-	return (pterm + iterm + pterm); 
+	return (pterm + iterm + dterm); 
 }
 
 void Pid::resetPID()

@@ -86,7 +86,7 @@ ISR(TIMER2_COMPA_vect)
 		if (cnt == 0) {
 			digitalWrite(STEP0, HIGH);  
 			digitalWrite(STEP1, HIGH);  
-		} else if (cnt == max_cnt / 2) {
+		} else if (cnt == 1) {
 			digitalWrite(STEP0, LOW);  
 			digitalWrite(STEP1, LOW);  
 		}
@@ -105,7 +105,7 @@ ISR(TIMER2_COMPA_vect)
  * 8: eights step
  * 16: sixteenth step
  */
-#define MICROSTEP	4
+#define MICROSTEP	16
 uint16_t rpm2maxcnt(uint16_t rpm)
 {
 	float pps = rpm * MICROSTEP * (200.0 / 60.0);
@@ -132,13 +132,13 @@ void motor_set_rpm(int16_t rpm)
 	} else if (rpm < 0) {
 		digitalWrite(DIR0, LOW);
 		digitalWrite(DIR1, HIGH);
-		digitalWrite(EN0, HIGH);
+		digitalWrite(EN0, LOW);
 		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(-rpm);
 	} else {
 		digitalWrite(DIR0, HIGH);
 		digitalWrite(DIR1, LOW);
-		digitalWrite(EN0, HIGH);
+		digitalWrite(EN0, LOW);
 		digitalWrite(EN1, LOW);
 		max_cnt = rpm2maxcnt(rpm);
 	}

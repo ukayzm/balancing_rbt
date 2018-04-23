@@ -89,7 +89,7 @@ ISR(TIMER2_COMPA_vect)
 		if (cnt == 0) {
 			digitalWrite(STEP0, HIGH);  
 			digitalWrite(STEP1, HIGH);  
-		} else if (cnt == 1) {
+		} else if (cnt == max_cnt / 2) {
 			digitalWrite(STEP0, LOW);  
 			digitalWrite(STEP1, LOW);  
 		}
@@ -108,12 +108,14 @@ ISR(TIMER2_COMPA_vect)
  * 8: eights step
  * 16: sixteenth step
  */
-#define MICROSTEP	4
+#define MICROSTEP	16
 uint16_t rpm2maxcnt(uint16_t rpm)
 {
 	float pps = rpm * MICROSTEP * (200.0 / 60.0);
 	uint16_t maxcnt = (uint16_t)(TIMER2_HZ / pps);
-#if 1
+	if (maxcnt < 1)
+		maxcnt = 1;
+#if 0
 	Serial.print(rpm); Serial.print(" RPM");
 	Serial.print("\t= "); Serial.print(pps); Serial.print(" pulse per sec (Hz)");
 	Serial.print("\t= "); Serial.print(max_cnt); Serial.print(" timer tick between pulse");
