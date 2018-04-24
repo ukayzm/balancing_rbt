@@ -50,12 +50,29 @@ void loop()
 	}
 	loop_start_usec = micros();
 #else
+#if 0
 	int i;
 
 	for (i = 0; i < 30; i++) {
 		motor_set_rpm(i);
 		delay(500);
 	}
+#else
+	int i;
+
+	for (i = 0; i < 500; i += 1) {
+		motor_set_rpm(i);
+		delay(5);
+	}
+	for (i = 500; i >= -500; i -= 1) {
+		motor_set_rpm(i);
+		delay(5);
+	}
+	for (i = -500; i < 0; i += 1) {
+		motor_set_rpm(i);
+		delay(5);
+	}
+#endif
 #endif
 }
 

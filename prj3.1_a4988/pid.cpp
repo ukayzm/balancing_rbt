@@ -30,7 +30,7 @@ float Pid::updatePID(float target, float current)
 
 	pterm = Kp * error;
 	if (1 < error) {
-		pterm *= abs(error);
+		//pterm *= abs(error);
 	}
 	integrated_error += Ki * error * dt;
 	iterm = constrain(integrated_error, -iterm_limit, iterm_limit);

@@ -7,12 +7,12 @@
  * You have to modify the IRremote library
  *  - add a call to timer_isr() at the end of IRTimer() in IRremote.cpp
  */
-#define SHARE_TIMER2_WITH_IRREMOTE
 
 #if defined(SHARE_TIMER2_WITH_IRREMOTE)
-#define TIMER2_HZ	20000
+#define TIMER_HZ	20000
 #else
-#define TIMER2_HZ	16000
+#define TIMER_HZ	64000
+//#define TIMER_HZ	128000
 #endif
 
 #if defined(SHARE_TIMER2_WITH_IRREMOTE)
@@ -29,36 +29,75 @@ void setup_board()
 	external_timer2_isr = timer_isr;
 	Serial.println("timer_isr attached");
 #else
+
+	cli();//stop interrupts
+
+#if defined(USE_MOTOR_TIMER1)
+	//set timer1 interrupt at 1Hz
+	TCCR1A = 0;// set entire TCCR1A register to 0
+	TCCR1B = 0;// same for TCCR1B
+	TCNT1  = 0;//initialize counter value to 0
+#if 0
+	// set compare match register for 1hz increments
+	OCR1A = 15624;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+
+	// Set CS10 and CS12 bits for 1024 prescaler
+	TCCR1B |= (1 << CS12) | (1 << CS10);  
+#else
+	//OCR1A = 125;  // 16Khz
+	//OCR1A = 100;  // 20Khz
+	//OCR1A = 80;   // 25Khz
+#if (TIMER_HZ == 64000)
+	OCR1A = 30;   // 64Khz
+#elif (TIMER_HZ == 128000)
+	OCR1A = 15;   // 128Khz
+#else
+#error unsupported TIMER_HZ
+#endif
+
+	// Set the timer pre-scaler
+	// Generally we use a divider of 8, resulting in a 2MHz timer on 16MHz CPU
+	TCCR1B = (TCCR1B & ~(0x07<<CS10)) | (2<<CS10);
+#endif
+	// turn on CTC mode
+	TCCR1B |= (1 << WGM12);
+	// enable timer compare interrupt
+	TIMSK1 |= (1 << OCIE1A);
+#else
 	/*
 	 * set timer2 interrupt at 8kHz
 	 * ref: http://www.instructables.com/id/Arduino-Timer-Interrupts
 	 */
-	cli();//stop interrupts
-
 	TCCR2A = 0;// set entire TCCR2A register to 0
 	TCCR2B = 0;// same for TCCR2B
 	TCNT2  = 0;//initialize counter value to 0
-#if (TIMER2_HZ == 8000)
+#if (TIMER_HZ == 8000)
 	// set compare match register for 8khz increments
 	OCR2A = 249;// = (16*10^6) / (8000*8) - 1 (must be <256)
 	// Set CS21 bit for 8 prescaler
 	TCCR2B |= (1 << CS21);   
-#elif (TIMER2_HZ == 16000)
-	// set compare match register for 8khz increments
+#elif (TIMER_HZ == 16000)
+	// set compare match register for 16khz increments
 	OCR2A = 124;// = (16*10^6) / (16000*8) - 1 (must be <256)
 	// Set CS21 bit for 8 prescaler
 	TCCR2B |= (1 << CS21);   
+#elif (TIMER_HZ == 64000)
+	// set compare match register for 16khz increments
+	OCR2A = 30;// = (16*10^6) / (64000*8) - 1 (must be <256)
+	// Set CS21 bit for 8 prescaler
+	TCCR2B |= (1 << CS21);   
 #else
-#error unsupported TIMER2_HZ
+#error unsupported TIMER_HZ
 #endif
 	// turn on CTC mode
 	TCCR2A |= (1 << WGM21);
 	// enable timer compare interrupt
 	TIMSK2 |= (1 << OCIE2A);
 
-	sei();//allow interrupts
-
 	Serial.println("timer2 done.");
+#endif
+
+	sei();//allow interrupts
 #endif
 
 	// setup pin
@@ -81,6 +120,8 @@ void setup_board()
 uint16_t cnt, max_cnt;
 #if defined(SHARE_TIMER2_WITH_IRREMOTE)
 void timer_isr()
+#elif defined(USE_MOTOR_TIMER1)
+ISR(TIMER1_COMPA_vect)
 #else
 ISR(TIMER2_COMPA_vect)
 #endif
@@ -89,7 +130,7 @@ ISR(TIMER2_COMPA_vect)
 		if (cnt == 0) {
 			digitalWrite(STEP0, HIGH);  
 			digitalWrite(STEP1, HIGH);  
-		} else if (cnt == max_cnt / 2) {
+		} else if (cnt == 1) {
 			digitalWrite(STEP0, LOW);  
 			digitalWrite(STEP1, LOW);  
 		}
@@ -112,7 +153,7 @@ ISR(TIMER2_COMPA_vect)
 uint16_t rpm2maxcnt(uint16_t rpm)
 {
 	float pps = rpm * MICROSTEP * (200.0 / 60.0);
-	uint16_t maxcnt = (uint16_t)(TIMER2_HZ / pps);
+	uint16_t maxcnt = (uint16_t)(TIMER_HZ / pps);
 	if (maxcnt < 1)
 		maxcnt = 1;
 #if 0
