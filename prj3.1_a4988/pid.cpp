@@ -7,9 +7,8 @@ Pid::Pid(float p, float i, float d, float i_limit, unsigned long typical_interva
 	Ki = i; 
 	Kd = d; 
 	iterm_limit = i_limit; 
-	integrated_error = 0; 
-	last_error = 0; 
 	max_interval_sec = (float)typical_interval_usec / 1000000.0 * 3;
+	resetPID();
 }
 
 float Pid::updatePID(float target, float current)
@@ -21,6 +20,7 @@ float Pid::updatePID(float target, float current)
 	if (dt > max_interval_sec) {
 		last_usec = usec;
 		last_error = 0;
+		last_input = 0;
 		integrated_error = 0; 
 		return 0;
 	}
@@ -35,7 +35,7 @@ float Pid::updatePID(float target, float current)
 	integrated_error += Ki * error * dt;
 	iterm = constrain(integrated_error, -iterm_limit, iterm_limit);
 
-	dterm = -Kd * (error - last_error) / dt;
+	dterm = -Kd * (current - last_input) / dt;
 #else
 	error = (target - current) * dt; 
 
@@ -48,6 +48,7 @@ float Pid::updatePID(float target, float current)
 	dterm = Kd * (error - last_error);
 #endif
 
+	last_input = current;
 	last_error = error;
 	last_usec = usec;
 
@@ -56,8 +57,9 @@ float Pid::updatePID(float target, float current)
 
 void Pid::resetPID()
 {
-	integrated_error = 0; 
-	last_error = 0; 
+	integrated_error = 0;
+	last_error = 0;
+	last_input = 0;
 }
 
 void Pid::setKp(float p)
