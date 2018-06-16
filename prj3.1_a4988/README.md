@@ -6,5 +6,5 @@
 - MPU6050
 - IR receiver
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/-58t6D5vS3g" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+[![2-wheel-balancing-robot-using-stepper-motor](https://img.youtube.com/vi/-58t6D5vS3g/0.jpg)](https://www.youtube.com/watch?v=-58t6D5vS3g)
 
