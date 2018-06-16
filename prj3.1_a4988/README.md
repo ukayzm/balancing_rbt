@@ -1,4 +1,4 @@
-# prj3.1 Balancing Robot with stepper motor
+# Prj3.1 Balancing Robot with stepper motor
 
 - Arduino nano
 - Pololu A4988 motor driver + 2 NEMA 17 stepper motors
