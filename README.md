@@ -2,6 +2,24 @@
 
 Test codes to make 2-wheel balancing robot using Arduino
 
+## Balancing robot
+
+#### [prj2.3_balancing_0](prj2.3_balancing_0)
+
+Xiaomi phone charger with 12V level converter, DC motor 74 RPM, 84mm wheel, L298N, MPU6050, IR
+
+[![2-wheel-balancing-robot-using-DC-motor](https://img.youtube.com/vi/L49bZ94RimM/0.jpg)](https://www.youtube.com/watch?v=L49bZ94RimM)
+
+#### [prj2.8_balancing_2](prj2.8_balancing_2)
+
+3S LiPo battery, DC motor 290 RPM 8.5 kg-cm, VNH5019 motor driver, MPU6050, IR
+
+#### [prj3.1_a4988](prj3.1_a4988)
+
+3S LiPo battery or 12V/4A AC-DC adaptor, NEMA 17 stepper motor, A4988 motor driver, IR
+
+[![2-wheel-balancing-robot-using-stepper-motor](https://img.youtube.com/vi/-58t6D5vS3g/0.jpg)](https://www.youtube.com/watch?v=-58t6D5vS3g)
+
 ## Test codes
 
 #### [Kalman](Kalman)
@@ -49,20 +67,3 @@ See [motor_test_3S_LiPo_VNH5019.ipynb](prj2.7_vnh5019/data/motor_test_3S_LiPo_VN
 
 motor test using stepper motor and A4988 motor driver
 
-## Balancing robot
-
-#### [prj2.3_balancing_0](prj2.3_balancing_0)
-
-Xiaomi phone charger with 12V level converter, DC motor 74 RPM, 84mm wheel, L298N, MPU6050, IR
-
-[![2-wheel-balancing-robot-using-DC-motor](https://img.youtube.com/vi/L49bZ94RimM/0.jpg)](https://www.youtube.com/watch?v=L49bZ94RimM)
-
-#### [prj2.8_balancing_2](prj2.8_balancing_2)
-
-3S LiPo battery, DC motor 290 RPM 8.5 kg-cm, VNH5019 motor driver, MPU6050, IR
-
-#### [prj3.1_a4988](prj3.1_a4988)
-
-3S LiPo battery or 12V/4A AC-DC adaptor, NEMA 17 stepper motor, A4988 motor driver, IR
-
-[![2-wheel-balancing-robot-using-stepper-motor](https://img.youtube.com/vi/-58t6D5vS3g/0.jpg)](https://www.youtube.com/watch?v=-58t6D5vS3g)
