@@ -6,7 +6,7 @@ Test codes to make 2-wheel balancing robot using Arduino
 
 #### PID test
 
-[![PID test](https://img.youtube.com/vi/uEMda9e2vXQ/0.jpg)](https://youtu.be/uEMda9e2vXQ)
+[![PID test](https://img.youtube.com/vi/uEMda9e2vXQ/0.jpg)](https://www.youtube.com/watch?v=uEMda9e2vXQ)
 
 #### [prj2.3_balancing_0](prj2.3_balancing_0)
 
@@ -16,7 +16,7 @@ Xiaomi phone charger with 12V level converter, DC motor 74 RPM, 84mm wheel, L298
 
 Behind Video
 
-[![Behind Video](https://img.youtube.com/vi/5wvaCM6jX_k/0.jpg)](https://youtu.be/5wvaCM6jX_k)
+[![Behind Video](https://img.youtube.com/vi/5wvaCM6jX_k/0.jpg)](https://www.youtube.com/watch?v=5wvaCM6jX_k)
 
 
 #### [prj2.8_balancing_2](prj2.8_balancing_2)
